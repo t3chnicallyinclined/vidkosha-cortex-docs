@@ -44,3 +44,12 @@ The workflow provides these env vars automatically during build:
 - `DOCUSAURUS_URL` (e.g. `https://t3chnicallyinclined.github.io`)
 - `DOCUSAURUS_BASE_URL` (e.g. `/<repo-name>/`)
 - `DOCUSAURUS_ORG` / `DOCUSAURUS_REPO` / `DOCUSAURUS_REPO_URL`
+
+## Hosted URLs (important)
+
+If you deploy as a GitHub Pages **project site** (most common), the site lives under the repo name:
+
+- Site root: `https://<org>.github.io/<repo>/`
+- Docs: `https://<org>.github.io/<repo>/docs/drag-tour`
+
+So `https://<org>.github.io/docs/drag-tour` will 404 unless you deploy at the domain root (e.g. a `/<org>.github.io` user/organization Pages repo) or you intentionally deploy into a repo named `docs`.
