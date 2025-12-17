@@ -1,0 +1,103 @@
+---
+slug: thinking-fabric-wal
+title: Thinking Fabric v2 (NATS WAL)
+---
+
+“Thinking Fabric” is our shorthand for an operator-run knowledge network where:
+
+- facts are appended to a durable WAL,
+- read models are rebuilt deterministically,
+- and operator work is routable, observable, and payable.
+
+Plain English: the **WAL (write-ahead log)** is an append-only “what happened” stream that anyone can replay.
+
+The name “Vidkosha” is inspired by Vedic/Sanskrit framing around knowledge and memory; in practice, the system stays grounded in modern event-driven architecture.
+
+This page describes the **event fabric contract**: how we name lanes (subjects), what an event envelope looks like, and how operators turn streams into reliable work.
+
+Treat this as the “network interface” that keeps the system scalable and auditable.
+
+## Core idea
+
+The network scales when:
+
+- writers only append facts to the WAL,
+- many independent consumers derive their own read models and workflows, and
+- everything important is replayable.
+
+That’s the same structural pattern behind large streaming platforms and realtime multiplayer systems: **append once, fan out many times**.
+
+## Subject taxonomy (how lanes shard)
+
+At minimum you want subject names that make sharding and policy obvious:
+
+- **tenant / topic / source** boundaries for multi-tenant isolation
+- **time bucketing** for retention and replay windows
+- **lane separation** for “facts” vs “work” vs “settlement”
+
+Practical examples of lanes (conceptual):
+
+- ingest facts (documents, media, metadata)
+- projection/update events
+- operator mission requests
+- usage/metering events
+- payout/settlement events
+- archival pack manifests and custody proofs
+
+The exact strings can evolve, but the design goal stays the same: **subjects encode routing and safety boundaries**.
+
+## Event envelope (what every consumer can rely on)
+
+An operator-friendly envelope should make replay and accounting easy:
+
+- stable identifiers (event ID, source ID)
+- timestamps (event time + observed time)
+- content addressing (hashes/manifest roots)
+- version fields (schema/version and recipe/model pins)
+- trace/causality (request ID / parent ID) for workflow stitching
+
+Why this matters:
+
+- projections can be rebuilt deterministically,
+- metering can be derived from canonical work units,
+- archival packs can be integrity-checked and priced.
+
+## Operator workflow: from streams to missions
+
+Operator Network v1 treats request/reply as the mission queue, but it still depends on WAL semantics:
+
+- the *facts* arrive through WAL subjects
+- the *work* is requested through mission lanes
+- the *accounting* is emitted through usage lanes
+
+The main reliability invariant is:
+
+- **At-least-once delivery is normal; idempotency is required.**
+
+Related docs:
+
+- [Operator Network v1](/docs/operator-network-v1)
+- [Marketplace + payouts](/docs/operator-marketplace)
+
+## Fresh + historical retrieval contract
+
+The network works best when the planner can choose between:
+
+- **fresh lanes** (hot window indices derived from the last $T$ days), and
+- **historical packs** (cold path retrieval with explicit pricing)
+
+Canonical behavior and economics:
+
+- [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
+
+## Extension point: training / accelerator lane
+
+Training fits the same contract if you make the work legible:
+
+- job request events reference dataset packs by manifest
+- operators advertise capacity tiers (latency/SLO/price)
+- results are posted as signed manifests (model artifact hashes + eval summaries)
+
+See:
+
+- [Training / accelerator lane](/docs/training-lane)

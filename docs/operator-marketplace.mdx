@@ -1,0 +1,101 @@
+---
+slug: operator-marketplace
+title: Marketplace + payouts
+---
+
+The marketplace exists to make operator work **legible and rewardable**: usage events get aggregated into payout batches.
+
+If the network can’t measure work, it can’t pay for work — and you don’t get a real operator ecosystem.
+
+## What is actually being traded
+
+The “marketplace” is not a UI first. It’s a set of protocol lanes:
+
+- **capability advertisement** (what an operator offers)
+- **routing** (how missions pick providers)
+- **usage events** (what happened, with pricing + SLO metadata)
+- **payout batching** (how rewards are aggregated and settled)
+
+This is how you get a system that can scale to millions of requests: you don’t manually coordinate providers; you route by lane.
+
+## Discovery vs. routing (Helix search vs NATS wildcards)
+
+It’s tempting to think “marketplace search” is just NATS subject wildcards (`topic.*`, `topic.>`). In practice:
+
+- **NATS subjects + wildcards** are best for **routing and ops** (subscribing to a known lane, sharding, and enforcing permissions).
+- **Marketplace discovery/search** should be backed by an **index/catalog** (Helix), so users can search topics/providers by metadata (coverage window, price, SLO tier, replication) without already knowing subject naming conventions.
+
+Operationally, wildcards can still help operators monitor what they’re responsible for; the user-facing marketplace should feel like a searchable catalog.
+
+## Latency is the product (and why operator rewards make sense)
+
+Many “decentralized storage/RAG” approaches can have high tail latency (IPFS-style peer discovery, cold content, variable pinning/gateway bottlenecks). That makes them hard to use for interactive AI systems.
+
+Vidkosha’s marketplace flips the premise:
+
+- operators are paid to run **reliable, low-latency services** (serving packs, running tools, generating embeddings, inference, etc.)
+- routing selects providers by **SLO + price**, so the network behaves like a real service fabric
+- usage events make the work measurable, so rewards correspond to actual delivered utility
+
+This also makes ops sane:
+
+- operators can put Grafana-style dashboards over lane latency, error rates, and consumer lag
+- routing/payouts become debuggable (“what got selected, why, and what did it cost?”)
+
+And it creates a natural product ladder:
+
+- baseline hot freshness
+- premium retention tiers (30d/90d/1y) where operators charge more for deeper memory and stronger SLOs
+
+## What gets metered
+
+- Retrieval and storage (pack serving)
+- Embeddings (vector generation)
+- Inference (optional tiers)
+- **Tool/MCP execution** (workflow steps like transforms, render, stitching)
+
+In practice, these show up to users as **paid API endpoints** (“run this workflow”, “generate this artifact”, “answer with citations”), backed by operators who commit to SLO + price.
+
+Reference:
+
+- [Packs (archival packs)](/docs/packs)
+
+Metering needs to be boring and machine-verifiable:
+
+- work unit ID (idempotency)
+- operator identity
+- lane + recipe/model/version pins
+- bytes/records/seconds (depending on lane)
+- SLO tier (latency/availability)
+- price quote vs actual usage
+
+## Storage operator incentive: 7-day WAL + paid archives
+
+Use JetStream retention (e.g. 7d) as the baseline freshness window:
+
+- **Hot path** (≤ $T$): cheap and fast, bounded storage cost.
+- **Cold path** (> $T$): storage operators compete to retain archival packs and charge for retrieval.
+
+This turns “infinite retention” from a hidden network cost into an explicit market.
+
+Detailed design:
+
+- [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
+
+## New revenue lane: training / fine-tuning / eval
+
+If you want node operators to run accelerators, the network needs a first-class way to price and settle:
+
+- **training jobs** (dataset pack + recipe pins → model artifact)
+- **evaluation jobs** (standard eval suites, safety checks, regression gating)
+- **artifact hosting** (model files and manifests served with integrity)
+
+What makes it investable:
+
+- compute is metered like any other operator lane
+- results are reproducible (pack + manifest references)
+- routing can optimize for price, SLO, and geography
+
+See:
+
+- [Training / accelerator lane](/docs/training-lane)

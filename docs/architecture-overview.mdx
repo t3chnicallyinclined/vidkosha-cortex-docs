@@ -1,0 +1,176 @@
+---
+slug: architecture-overview
+title: Architecture overview
+---
+
+This is the mental model to hold in your head as an operator or investor: **Vidkosha Cortex is a “thinking fabric” built like large-scale streaming + low-latency systems**.
+
+Instead of hiding state inside opaque services, we make the network legible:
+
+- A **durable write-ahead log (WAL)** (JetStream) is the source of truth.
+- A **rebuildable read model** (Helix) makes queries fast.
+- An **execution plane** (operators) turns requests into work, with metering and payouts.
+
+That structure is why the system can scale “Netflix/gaming-class”: you can add consumers, add projections, add workers, and replay history to rebuild everything.
+
+## The three planes (CQRS)
+
+### 1) Write plane: NATS JetStream (WAL)
+
+Plain English: a **WAL (write-ahead log)** is an append-only record of events — like a receipt tape — that you can replay to rebuild everything else.
+
+JetStream is the **canonical event log**.
+
+Why it’s great for this use case:
+
+- **Replayable truth:** if you can replay the log, you can rebuild state, fix bugs, and prove what happened.
+- **Fanout at scale:** one published event can feed many independent consumers (indexers, pack builders, marketplace meters, monitoring).
+- **Backpressure + durability:** slow consumers don’t break the writer; they lag and catch up.
+- **Operational clarity:** if the WAL is unhealthy, you *know* the system is unhealthy (no “silent success” where data vanishes).
+
+How it scales to millions:
+
+- **Subject partitioning** becomes your sharding key (by tenant/topic/source/time bucket).
+- **Many independent durable consumers** process different lanes without coupling.
+- **Hot retention is bounded** (e.g. 7d), so the network avoids unbounded storage costs while still being “fresh by default”.
+
+### 2) Read plane: HelixDB (rebuildable projection)
+
+Helix is the **fast query layer** (a projection), not the source of truth.
+
+Why it’s great for this use case:
+
+- **Low-latency retrieval:** queries hit a purpose-built read model, not raw logs.
+- **Rebuildable:** if the schema changes or an index is wrong, you rebuild from WAL/archives.
+- **Composable query primitives:** it’s where you keep “what we know” in a form the planner can use: neighborhoods, topic graphs, doc/chunk indexes, provenance.
+
+Scaling intuition:
+
+- You can run **multiple projections** (different indices, different query shapes) without changing writers.
+- You can run **projection operators horizontally** (consumer lag becomes your capacity signal).
+
+### 3) Execution plane: Operators (workers/providers)
+
+Operators are how the fabric turns intent into results:
+
+- ingest and normalize sources
+- build embeddings and indices
+- serve retrieval packs
+- run MCP tools (transforms, stitching, rendering)
+- optional inference providers
+
+Why it’s great for this use case:
+
+- **Clear unit economics:** work shows up as metered events (usage) that can be paid.
+- **Separation of concerns:** execution capacity scales independently from storage or query.
+- **Composable pipelines:** you can chain operators (ingest → pack → retrieve → tool steps) while keeping each step auditable.
+
+## End-to-end flow (what actually happens)
+
+At a high level:
+
+1. An operator ingests data and publishes canonical events into JetStream.
+2. Projection operators consume events and update Helix.
+3. When a user asks a question, a planner runs fast hot retrieval first.
+4. If older context is needed, the planner fetches archival packs (paid retrieval), verifies manifests, and continues.
+5. Optional MCP tools run deterministic steps (e.g. render a report, transform data), producing more metered work.
+
+The key operational principle: **everything important is either in the WAL, derived from it, or referenced by an integrity-checked pack.**
+
+## Freshness window + archives (bounded hot, paid cold)
+
+JetStream retention (example: 7d) is not only an ops setting — it’s the boundary that makes the network scale economically.
+
+- **Hot window:** cheap, fast, bounded.
+- **Cold history:** explicit, paid storage + retrieval.
+
+The canonical economics + flow is documented here:
+
+- [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
+- [What is a pack?](/docs/packs)
+
+## Layered retention tiers (7d / 30d / 90d / …)
+
+The “7-day WAL” idea generalizes into **retention tiers** (a storage product ladder):
+
+- a baseline hot window (e.g. 7d)
+- optional higher tiers (30d, 90d, 1y, …) with higher cost and potentially stronger SLOs/replication
+
+Why this is valuable:
+
+- users can buy the memory depth they actually need
+- operators can specialize (cheap hot path vs premium historical custody)
+- the network can let the community/DAO set defaults and subsidies instead of baking in infinite retention
+
+In practice, tiers can be expressed as retention policies over packs: window length, replication factor, and max-latency tier.
+
+## Observability-first operations
+
+This architecture is unusually observable because “truth” and “work” are explicit:
+
+- **WAL health:** JetStream stream health, publish rates, storage usage, and consumer lag.
+- **Projection health:** lag-to-index (how long from WAL event to Helix availability).
+- **Work health:** per-lane request latency (p50/p95/p99), error rates, and SLO compliance.
+- **Economics:** usage events tie operator performance to payouts (what earned, where, and why).
+
+Operators can run standard tooling (Prometheus/Grafana-style dashboards) to see where the AI system is slow, expensive, or stale — and then tune routing policies, pack replication, caching, and recipe/version rollouts.
+
+## Time-travel RAG: replay old history and rehydrate a past snapshot
+
+WAL-first + archival packs enables something most RAG stacks can’t do cleanly: **spin up a full “archived RAG” for a past time range and serve it like it’s live**.
+
+Mechanically:
+
+- JetStream gives you the **append-only facts** (for the hot window).
+- Archival packs give you **sealed historical context** (documents + embeddings + manifests).
+- Helix projections can be **rebuilt** from WAL + packs into a queryable snapshot.
+
+That means you can stand up:
+
+- a “RAG as of 2025-10-01” (or “as of pre-incident”),
+- a per-tenant or per-topic historical index,
+- a deterministic replay to verify results and accounting.
+
+High-value use cases:
+
+- **Forensics & incident response:** replay “what did we know when we decided X?” with the exact historical context.
+- **Compliance & audits:** reproduce retrieval results for a regulator with integrity-checked packs.
+- **Backtesting & research:** run strategies/analyses against historical slices with pinned embedding recipes.
+- **Model evaluation regression:** test new models against old corpora with reproducible snapshots.
+- **Enterprise change control:** compare “RAG before policy/doc updates” vs “after” and quantify drift.
+
+This is also a monetizable operator lane: operators can sell “snapshot serving” as a priced service (build + host + serve a historical index).
+
+## Why this beats “decentralized storage latency” (IPFS-style pitfalls)
+
+Many decentralized RAG/storage stacks lean on content-addressed/DHT-style retrieval (IPFS-like networks). They can work, but the **tail latency** is often high for interactive retrieval because you pay for:
+
+- provider discovery + multi-hop routing,
+- variable peer availability,
+- cold content that isn’t pinned near the requester,
+- gateway bottlenecks.
+
+Vidkosha Cortex is designed to feel like a low-latency service because:
+
+- **Hot window is local and indexed:** fresh queries hit Helix projections derived from the WAL.
+- **Operators provide real services with SLOs:** retrieval, pack serving, transforms, embeddings, inference, and eventually training.
+- **Routing is policy-driven:** choose providers by price + SLO + geo/egress, not “who happens to have the CID”.
+- **Cold history is explicit and paid:** archives aren’t a hope-and-pray DHT fetch; they’re a market of storage operators who earn revenue by serving packs reliably.
+
+This is the core operator thesis: operators aren’t “just hosting blobs” — they run valuable, metered services that directly create network utility and therefore justify rewards.
+
+## New lane: training / fine-tuning (accelerator backends)
+
+The same three-plane architecture extends naturally to a “training lane”:
+
+- **WAL:** training jobs, dataset pack references, eval requests, and result manifests are events.
+- **Helix:** indexes datasets, job provenance, model artifacts, and evaluation summaries.
+- **Operators:** provide GPU/accelerator capacity (imagine Vidkosha Cortex behind a datacenter of Cerebras-class or GPU clusters), run deterministic preprocessing tools, and serve model artifacts.
+
+What makes this lane compelling (operator/investor view):
+
+- **Metered compute becomes a first-class product:** training/eval jobs are priced, routed, and settled like any other operator service.
+- **Reproducibility as a differentiator:** datasets are referenced by pack IDs + manifests; model recipes are versioned; results are auditable.
+- **Capacity scales linearly:** add more accelerator providers, increase concurrency; the WAL + planner coordinates.
+
+This is a *vision/roadmap lane* (not all plumbing is implemented today), but it fits the architecture cleanly because the fabric already treats “work” as composable, routable, and payable.

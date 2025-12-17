@@ -1,0 +1,133 @@
+:root {
+  --ifm-color-primary: #6ee7ff;
+  --ifm-color-primary-dark: #41dcff;
+  --ifm-color-primary-darker: #2fd6ff;
+  --ifm-color-primary-darkest: #00c7f4;
+  --ifm-color-primary-light: #9bf2ff;
+  --ifm-color-primary-lighter: #adf6ff;
+  --ifm-color-primary-lightest: #d9fdff;
+
+  --ifm-font-family-base: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --ifm-font-family-monospace: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --vk-bg: #050714;
+  --vk-panel: rgba(16, 22, 46, 0.72);
+  --vk-panel2: rgba(12, 18, 40, 0.70);
+  --vk-text: #eaf1ff;
+  --vk-muted: rgba(234, 241, 255, 0.72);
+  --vk-brand2: #b88cff;
+  --vk-border: rgba(255,255,255,0.10);
+
+  /* Force a readable dark baseline even when the UI is in "light" mode. */
+  --ifm-background-color: var(--vk-bg);
+  --ifm-background-surface-color: rgba(16, 22, 46, 0.55);
+  --ifm-font-color-base: var(--vk-text);
+  --ifm-color-content: var(--vk-text);
+  --ifm-color-content-secondary: var(--vk-muted);
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-navbar-link-color: var(--vk-text);
+  --ifm-navbar-background-color: transparent;
+}
+
+html[data-theme='dark'] {
+  --ifm-background-color: var(--vk-bg);
+  --ifm-font-color-base: var(--vk-text);
+  --ifm-color-content: var(--vk-text);
+  --ifm-color-content-secondary: var(--vk-muted);
+}
+
+html[data-theme='light'] {
+  --ifm-background-color: var(--vk-bg);
+  --ifm-background-surface-color: rgba(16, 22, 46, 0.55);
+  --ifm-font-color-base: var(--vk-text);
+  --ifm-color-content: var(--vk-text);
+  --ifm-color-content-secondary: var(--vk-muted);
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-navbar-link-color: var(--vk-text);
+  --ifm-navbar-background-color: transparent;
+}
+
+body {
+  background:
+    radial-gradient(1100px 700px at 15% 10%, rgba(110,231,255,0.20), transparent 60%),
+    radial-gradient(900px 600px at 88% 16%, rgba(184,140,255,0.18), transparent 60%),
+    radial-gradient(900px 700px at 48% 105%, rgba(114,247,197,0.10), transparent 60%),
+    radial-gradient(700px 600px at 60% 30%, rgba(255,111,167,0.08), transparent 62%),
+    radial-gradient(2px 2px at 20% 25%, rgba(234,241,255,0.22), transparent 60%),
+    radial-gradient(2px 2px at 70% 35%, rgba(234,241,255,0.18), transparent 60%),
+    radial-gradient(1.5px 1.5px at 55% 80%, rgba(234,241,255,0.16), transparent 60%),
+    radial-gradient(1.5px 1.5px at 30% 78%, rgba(234,241,255,0.14), transparent 60%),
+    linear-gradient(180deg, rgba(7,10,24,0.0), rgba(7,10,24,0.35) 60%, rgba(7,10,24,0.65)),
+    var(--vk-bg);
+}
+
+/* Ensure markdown/doc text is readable on the dark background. */
+.markdown,
+.theme-doc-markdown {
+  color: var(--vk-text);
+}
+
+.markdown a,
+.theme-doc-markdown a {
+  color: var(--ifm-link-color);
+}
+
+/* Keep subtle separators visible. */
+.theme-doc-sidebar-container,
+.theme-doc-footer,
+.theme-doc-toc-desktop {
+  border-color: var(--vk-border);
+}
+
+.navbar {
+  background: linear-gradient(180deg, rgba(16,22,46,0.80), rgba(12,18,40,0.55));
+  border-bottom: 1px solid var(--vk-border);
+}
+
+.footer {
+  border-top: 1px solid var(--vk-border);
+}
+
+.card {
+  background: var(--vk-panel);
+  border: 1px solid var(--vk-border);
+}
+
+.vk-hero {
+  border: 1px solid var(--vk-border);
+  background: linear-gradient(180deg, rgba(16,22,46,0.80), rgba(12,18,40,0.55));
+  border-radius: 18px;
+  padding: 28px 18px;
+}
+
+.vk-kicker {
+  font-family: var(--ifm-font-family-monospace);
+  letter-spacing: 0.02em;
+  color: var(--vk-muted);
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+
+.vk-sub {
+  color: var(--vk-muted);
+  max-width: 75ch;
+}
+
+.vk-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.vk-callout {
+  border-left: 3px solid rgba(110,231,255,0.55);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--vk-panel2);
+  color: var(--vk-muted);
+  margin-top: 10px;
+}
+
+.vk-callout.warn { border-left-color: rgba(251,191,36,0.75); }
+.vk-callout.good { border-left-color: rgba(110,231,183,0.75); }

@@ -1,0 +1,87 @@
+---
+slug: chain-rollout
+title: Chain rollout (optional)
+---
+
+Chain integration is **additive**: off-chain first, hash-only first, and disabled by default.
+
+The goal is to get real operator revenue and real workloads working **without** forcing every request onto a blockchain.
+
+For investors: this lowers product risk and time-to-revenue.
+
+For operators: this keeps latency, complexity, and operational overhead under control.
+
+## Design principles
+
+- **Off-chain business first:** routing, metering, and payouts should work without a chain.
+- **Hash-only on-chain:** store commitments (roots/hashes), not raw data.
+- **Minimize on-chain surface:** keep the chain layer a verification/settlement option, not the runtime.
+- **No chain-specific assumptions:** the architecture should support an EVM L2 or similar, but not depend on one.
+
+## What we would anchor on-chain (if/when enabled)
+
+The chain layer is for *commitments* and *settlement*, not for serving data.
+
+Typical candidates for anchoring:
+
+- **Payout batch commitments:** a Merkle root or digest of usage-event aggregation and payout allocations.
+- **Pack manifest commitments:** hashes of archival pack manifests (integrity + provenance checkpoints).
+- **Operator identity registry (optional):** a minimal registry for operator keys and metadata, if useful.
+
+None of the above requires on-chain execution for the hot path.
+
+## Phased rollout (operator-friendly)
+
+### Phase 0: Off-chain-only (default)
+
+- Operators run lanes and emit usage events.
+- The network aggregates usage into payout batches off-chain.
+- Audits/disputes are handled by policy and logs (WAL + manifests + event IDs).
+
+This phase is enough to launch paid APIs and operator businesses.
+
+### Phase 1: Checkpointing (hash-only)
+
+- Periodically anchor **payout batch roots** (and/or pack manifest roots) on-chain.
+- Keep the payout execution off-chain.
+
+Benefit: external parties can verify that batches weren’t rewritten after publication.
+
+### Phase 2: Optional settlement on-chain
+
+- Add an option to settle payout batches on-chain.
+- Keep “who gets paid how much” derived from the same usage-event roots.
+
+This is a credibility upgrade, not a requirement.
+
+### Phase 3: Stronger enforcement (only if needed)
+
+If the market demands it, introduce stronger enforcement mechanisms (carefully):
+
+- staking requirements for certain lanes/SLO tiers
+- slashing or escrow for provable fraud
+- formal dispute games for contested batches
+
+These are higher complexity and should be introduced only when the volume and adversarial pressure justify it.
+
+## Operator impact
+
+Operators should not need a chain node to run the core business.
+
+At most, chain integration should require:
+
+- reading checkpoint events (batch roots) for verification
+- optionally participating in settlement if they choose that payout mode
+
+## Investor view (why this sequencing matters)
+
+This rollout order is about de-risking:
+
+- build demand and revenue with off-chain metered APIs
+- harden auditability with hash-only commitments
+- add settlement only when the network has enough real usage to justify the overhead
+
+Related:
+
+- [DAO + value flow](/docs/dao-financial-architecture)
+- [Marketplace + payouts](/docs/operator-marketplace)

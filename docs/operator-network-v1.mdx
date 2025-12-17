@@ -1,0 +1,117 @@
+---
+slug: operator-network-v1
+title: Operator Network v1
+---
+
+Operator Network v1 treats the **request/reply runtime** as the mission queue.
+
+The WAL carries facts; the operator network carries *work*.
+
+## What an “operator” is
+
+An operator is a provider that:
+
+- advertises a capability lane (ingest, retrieval, transforms/tools, embeddings, inference, storage),
+- receives mission requests,
+- executes work with an observable SLO, and
+- emits usage events for settlement.
+
+This is what makes the system investable: work is **legible**, measurable, and payable.
+
+## Why this design scales (Netflix/gaming-class intuition)
+
+The pattern is the same as large-scale streaming + realtime systems:
+
+- a durable log feeds many consumers (projection, indexing, monitoring)
+- a low-latency work queue routes requests to providers
+- providers scale horizontally by adding more instances
+
+In practice, scaling happens by:
+
+- **adding more operators** for a given capability lane
+- **partitioning by subject** (topic/tenant/source/time)
+- treating **queue depth/lag** as a first-class KPI
+
+## Why this is low-latency (and why many decentralized stores aren’t)
+
+In many decentralized RAG designs, retrieval devolves into “find peers who might have the content” (often IPFS-like), which can introduce high and unpredictable tail latency.
+
+Operator Network v1 keeps the interactive path fast by treating retrieval as a **service lane**:
+
+- operators advertise capabilities and SLO tiers
+- routing chooses operators deliberately (price/SLO/geo)
+- responses come from providers optimized for serving, not opportunistic peer discovery
+
+The consequence is economic: operators get paid because they provide **valuable low-latency services** (pack serving, transforms, tool calls, embeddings/inference), not because they merely exist on a peer list.
+
+## Mission flow (end-to-end)
+
+Typical request path:
+
+1. A planner decides what needs to be done (retrieve packs, run tools, embed, etc.).
+2. It routes a mission request to the right lane.
+3. Operators compete on price/SLO or are selected by routing policy.
+4. Operators execute the work and return results.
+5. Operators emit usage/metering events so payouts can be computed.
+
+## Lag as a demand signal (and a way operators find work)
+
+In a WAL-first fabric, **consumer lag** (backlog) is a first-class signal:
+
+- **Health:** lag spikes usually mean a consumer is slow or unhealthy.
+- **Capacity:** sustained lag means the lane is under-provisioned.
+- **Market pressure:** “topic X is lagging” implies demand > supply for that lane’s work (projection/pack building/retrieval), which can justify higher pricing and attracts more operators.
+
+This is where observability turns into economics: operators can see which lanes/topics are falling behind and step in with capacity to earn.
+
+## Demand is observable (without leaking raw user prompts)
+
+Operator networks fail when “what users want” is invisible. In Vidkosha, demand becomes observable because requests are routed through explicit lanes and accounted for via usage events.
+
+What operators should be able to see (and act on):
+
+- **Lane health:** request rate, latency (p50/p95/p99), error rate, and consumer lag/backlog.
+- **Demand by topic/coverage:** which topic lanes are hot (by request volume and growth) and which are under-provisioned.
+- **Semantic demand signals (aggregate):** top semantic clusters/tags and trending query intents — as **aggregates**, not raw user prompts.
+
+Why this matters economically:
+
+- If a new ingestor starts publishing a stream (e.g. a Twitter/X feed) and it begins to attract heavy semantic queries, the network can surface that as a clear **“add capacity here”** signal.
+- Retrieval/index operators can scale projections and caching.
+- Inference/tool operators can deploy a paid endpoint tailored to that demand (brief generation, trend detection, claim checking, alerting, etc.).
+
+This is how contributors at different levels collaborate without coordination:
+
+- **Data builders/curators** publish fresh streams into the 7-day WAL window (cheap to experiment; fast feedback).
+- **Operators** watch the demand/lag signals and move compute to where the market is.
+- **Archival operators** extend the hot window via packs when customers prove they’ll pay for longer memory.
+
+## Where agents + MCP fit
+
+- Operators can host MCP tools so agents can run deterministic workflows.
+- Toolcalls and work units can be metered and routed like any other provider lane.
+
+## Freshness window + archives
+
+Operator Network v1 works well with a two-tier memory model:
+
+- JetStream WAL retains the last $T$ days (e.g. 7d) as the hot/fresh window.
+- Older data becomes “archival packs” stored by storage operators and retrieved on-demand.
+
+Detailed design:
+
+- [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
+
+## New lane: training / fine-tuning providers
+
+Operator Network v1 can route training the same way it routes tools and retrieval:
+
+- missions become “train/eval” jobs (dataset pack references + recipe pins)
+- providers are accelerator-backed operators (GPU clusters / Cerebras-class datacenters)
+- results are published as signed manifests (model artifact hashes, eval summaries)
+
+This is the simplest way to make “operator-run model training” real: treat training as just another metered provider lane with strict reproducibility.
+
+See:
+
+- [Training / accelerator lane](/docs/training-lane)

@@ -1,0 +1,150 @@
+---
+slug: vidkosha-cortex
+title: Vidkosha Cortex
+---
+
+import Link from '@docusaurus/Link';
+
+<div className="vk-hero">
+  <p className="vk-kicker">Vidkosha Cortex • Operator Network • DRAG (Decentralized RAG)</p>
+  <h1>Build the world’s fastest, freshest knowledge fabric — and get paid for it.</h1>
+  <p className="vk-sub">
+    DRAG is a practical path to a global, operator-backed retrieval and inference utility: seed “Humanity’s Open Knowledge”, keep it up-to-date by the minute,
+    and monetize it via metered APIs (retrieval + embeddings + inference + tools/MCP). The more real usage, the more operators earn.
+  </p>
+
+  <div className="vk-buttons">
+    <Link className="button button--primary" to="/docs/drag-tour">Read the DRAG tour (start here)</Link>
+    <Link className="button button--secondary" to="/docs/canonical-drag">Canonical DRAG spec (deep dive)</Link>
+    <Link className="button button--secondary" to="/docs/operator-network-v1">Operator Network v1 (how it runs)</Link>
+    <Link className="button button--secondary" to="/docs/dao-financial-architecture">DAO + value flow (how money moves)</Link>
+  </div>
+
+  <div className="vk-callout good">
+    <strong>Why this wins:</strong> competitors sell a model endpoint. DRAG sells a living memory fabric — fresh knowledge + fast retrieval + metered economics —
+    so operators can invest in infrastructure and compound advantage.
+  </div>
+</div>
+
+## What DRAG enables
+
+- **Humanity’s Open Knowledge:** Wikipedia/Wikidata + open research + standards + public datasets.
+- **Freshness as a feature:** “Newest papers on X” and “What changed today?” becomes a default workflow.
+- **Real-time market intelligence:** news + filings + research feeds can be sifted and queried as they arrive.
+- **RAG at scale:** semantic search + graph neighborhood hydration (Helix) for grounded answers.
+- **Agents + MCP as the moat:** retrieval + toolcalls + workflows, not just chat completions.
+- **Operator-deployed inference services:** operators package workflows as callable endpoints (retrieval + tool steps + inference).
+- **Automated content pipelines (illustrative):** research → script → voice → clips → stitched output (10–30s segments).
+- **Semantic media archives (illustrative):** transcribe + embed YouTube/podcasts by topic and serve grounded search as queryable packs.
+- **SEO automation (illustrative):** upload a long podcast and get a packaging bundle (titles, chapters, descriptions, keywords, clip plan, thumbnail concepts).
+
+## Why Vidkosha Cortex is different
+
+Most “decentralized RAG” attempts accidentally build a **decentralized storage network** and then try to bolt interactive retrieval on top.
+
+That tends to produce high tail latency because you pay for discovery + multi-hop routing + variable availability (IPFS-style patterns), and you’re often retrieving cold content that isn’t pinned near the user.
+
+Vidkosha Cortex is a **service fabric**:
+
+- **Fast hot path:** indexed retrieval over a bounded freshness window.
+- **Explicit cold path:** paid archival packs served by storage operators with clear expectations.
+- **Real operator businesses:** operators aren’t rewarded for “having a CID” — they earn because they deliver low-latency services that the network can meter and settle.
+
+## The “Thinking Fabric” idea (and where the name comes from)
+
+We often describe Vidkosha Cortex as a **Thinking Fabric**: a network where knowledge is continuously ingested, indexed, served, and improved by operators — with replayable history and measurable work.
+
+The project name “Vidkosha” is inspired by *Vedic/Sanskrit* framing around **knowledge as something that can be cultivated, preserved, and transmitted**. We use that inspiration as a narrative compass (clarity, provenance, memory, and iteration), while keeping the engineering grounded in modern distributed-systems primitives.
+
+If you want the technical contract behind the “fabric” metaphor:
+
+- [Thinking Fabric v2 (NATS WAL)](/docs/thinking-fabric-wal)
+
+## Architecture in one picture (the three planes)
+
+- **Write plane (truth):** NATS JetStream as the WAL (durable, replayable).
+- **Read plane (speed):** Helix as the rebuildable query projection.
+- **Execution plane (work):** operators run ingestion, indexing, pack serving, tools/MCP steps, embeddings/inference, and later training.
+
+Plain English: **WAL = “receipt tape”**. Everything that happens gets appended to a log first, and the rest of the system is built by replaying that log.
+
+Why this scales like Netflix/large streaming systems:
+
+- append facts once → fan out to many consumers
+- scale by adding consumers/operators, not by rewriting the producer
+- rebuild anything by replaying the log + packs
+
+Deep dives:
+
+- [Architecture overview](/docs/architecture-overview)
+- [WAL-first (JetStream)](/docs/wal-first)
+- [Helix schema (read model)](/docs/helix-schema)
+
+## Latency + scale (what we optimize for)
+
+The design target is an **interactive hot path** that can reach *double-digit millisecond* response times when operators are deployed close to users and the query stays within the hot window.
+
+Mechanically, that comes from:
+
+- **precomputed projections** (Helix) instead of raw-log scanning
+- **service routing** (choose providers by SLO + price + geo) instead of peer discovery
+- **bounded hot storage** (e.g. 7d) so performance doesn’t degrade as the network grows
+
+The cold path (paid history) is allowed to be slower because it’s explicit, priced, and integrity-checked.
+
+## Observability-first operations (a hidden superpower)
+
+Because the fabric is WAL-first and work is routed as explicit missions, operators get unusually clean observability:
+
+- JetStream health + consumer lag tells you “is the network ingesting and projecting?”
+- per-lane latency (p50/p95/p99) tells you “is retrieval/tools/inference meeting SLOs?”
+- usage events tie performance to payouts (“what actually generated revenue?”)
+
+Two practical consequences:
+
+- **Lagging topics become visible demand:** operators can see which lanes are behind and add capacity to earn.
+- **Semantic demand signals (aggregate):** operators can see what’s being asked for as topic/cluster aggregates (not raw prompts), so they can build and deploy the right endpoints.
+- **Discovery stays sane:** NATS wildcards help routing/ops, but the marketplace can be indexed (Helix) so users search a catalog by topic/coverage/SLO/price.
+
+This is the practical difference vs opaque AI stacks: you can run Grafana dashboards, see exactly where time/cost is spent, and tune routing, caching, pack replication, and recipe/version rollouts with confidence.
+
+## Layered retention tiers (community-defined storage lanes)
+
+The 7-day hot window is the baseline, but the network can support **retention tiers** as a market:
+
+- Tier 1: 7d freshness (cheap, fast)
+- Tier 2: 30d retention (more coverage, more cost)
+- Tier 3: 90d / 1y retention (premium)
+
+Operators who retain more history charge more; the community/DAO can decide defaults, replication factors, and what gets subsidized.
+
+Canonical economics:
+
+- [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
+
+## Inference, tools, and “real operator revenue”
+
+The network’s moat is not just “retrieval exists” — it’s that workflows are **metered services**:
+
+- pack serving (hot/cold)
+- transforms/rendering via MCP tools
+- embeddings and inference (optional lanes)
+- evaluation and (future) fine-tuning/training
+
+This is what makes operator rewards sustainable: there are clear, valuable services users pay for.
+
+Design goal: those services are accessible via **stable, metered APIs** (retrieval, embeddings, tools/MCP steps, and inference endpoints), so operators can build revenue-generating products on top of the fabric instead of relying on one-off consulting.
+
+- [Operator Network v1](/docs/operator-network-v1)
+- [Marketplace + payouts](/docs/operator-marketplace)
+- [Training / accelerator lane (vision)](/docs/training-lane)
+
+## One more superpower: time-travel RAG
+
+Because history is replayable (WAL) and sealable (archival packs), you can spin up a “RAG as-of date $D$” and serve it for audits, backtests, and incident forensics.
+
+- [Time-travel RAG (architecture)](/docs/architecture-overview)
+
+## Legacy (during migration)
+
+(Legacy HTML mirror removed.)

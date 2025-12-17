@@ -1,0 +1,77 @@
+---
+slug: wal-first
+title: WAL-first (JetStream)
+---
+
+## WAL in plain English
+
+A **WAL (write-ahead log)** is an append-only “receipt tape” of everything that happened.
+
+Instead of updating lots of databases in-place and hoping they stay consistent, you **first write the fact to the log**. Then any number of systems can replay that log to rebuild indexes, caches, and views.
+
+“WAL-first” means one thing: **the only thing you must never lose is the append-only event stream**. Everything else (indexes, graphs, caches, views, derived tables) is replaceable.
+
+For operators, that translates to a very practical posture:
+
+- If JetStream is healthy and you’re publishing correctly, the system can be rebuilt.
+- If JetStream is unhealthy or you are “publishing” into a void, you are not operating the protocol.
+
+## Why JetStream is the right WAL here
+
+JetStream is a good fit because it’s both:
+
+- a **durable log** (replayable, auditable), and
+- a **high-throughput fanout fabric** (many consumers, many lanes).
+
+In a DRAG-style network, you want *many* consumers to see the same facts:
+
+- projection/index builders
+- marketplace metering
+- archival pack builders
+- monitoring and integrity checkers
+
+This is exactly the “Netflix/gaming-class” pattern: a durable stream feeding many independent services.
+
+## The scaling trick: bounded hot truth + paid cold history
+
+The easiest way to keep a global event fabric economically scalable is to **bound the hot window**.
+
+Example rule:
+
+- JetStream retains the raw WAL for $T$ days (e.g. 7d).
+- Anything older is only available if someone paid to keep it as archival packs.
+
+Why this matters:
+
+- Hot storage cost becomes predictable.
+- Freshness becomes a real guarantee (“last 7 days is always fast”).
+- Long-term memory becomes a market instead of a hidden liability.
+
+Canonical detail:
+
+- [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
+
+## Operator responsibilities (what you actually need to get right)
+
+- **Idempotency:** replay will happen; your consumers must tolerate duplicates.
+- **Schema versioning:** envelopes evolve; plan for forward/back compatibility.
+- **Lag is a KPI:** consumer lag is capacity pressure; treat it like a queue depth.
+- **Failure visibility:** if JetStream is down, ingestion should fail loudly (no silent drops).
+
+## Failure modes to design for
+
+- **Slow consumers:** lag increases; you scale consumers horizontally.
+- **Reprocessing:** deploy a fixed projection, rewind, rebuild.
+- **Retention boundary:** after $T$, raw events disappear; if you need history, it must be promoted into a pack (or sponsored).
+
+## How this ties into training / accelerators
+
+Training workflows are expensive and sensitive to reproducibility. WAL-first helps because:
+
+- jobs reference **dataset packs** by manifest hash,
+- preprocessing/tool steps are **deterministic and auditable**, and
+- the network can replay job streams to verify accounting and outcomes.
+
+See:
+
+- [Training / accelerator lane](/docs/training-lane)

@@ -1,0 +1,249 @@
+---
+slug: canonical-drag
+title: Canonical DRAG spec
+---
+
+This page is the operator-friendly mirror of the canonical DRAG spec.
+
+## Key idea
+
+DRAG is not “just a model endpoint.” It’s a memory + retrieval utility: ingest → WAL → projection → retrieval → workflows.
+
+## Why this is faster than most decentralized stores
+
+Many decentralized storage/RAG designs rely on content-addressed/DHT-style retrieval (often IPFS-like). For interactive AI retrieval, the **tail latency** can be high due to peer discovery, cold content, and variable availability.
+
+This architecture stays fast because:
+
+- **fresh retrieval is indexed** (Helix projections derived from the WAL), and
+- **historical retrieval is a paid service** (storage operators compete to serve integrity-checked packs with explicit pricing and SLO expectations).
+
+## Time-travel RAG: resurrect a historical retrieval system on demand
+
+Because the write plane is replayable (WAL) and the cold path is sealed (archival packs + manifests), the network can do something that’s extremely painful in most RAG stacks:
+
+- **stand up a complete historical index** (“RAG as-of date $D$”) and serve it,
+- replay and rebuild projections deterministically,
+- verify provenance and integrity for audits.
+
+This is a natural consequence of:
+
+- append-only facts in the WAL,
+- rebuildable projections (Helix), and
+- integrity-checked historical packs.
+
+Practical use cases:
+
+- **Compliance-grade replay:** reproduce the exact context used to answer a question last quarter.
+- **IR forensics:** reconstruct the knowledge state during an incident window.
+- **Backtesting:** replay historical datasets with pinned recipes for reproducible experiments.
+- **Regression testing:** evaluate new retrieval/indexing/model changes against old corpora.
+- **“Snapshot RAG as a service”:** operators host and serve specific historical snapshots for customers.
+
+## Gold-standard use case: 7-day WAL freshness + archival market
+
+Plain English: the **WAL (write-ahead log)** is the append-only stream of events (“what happened”) that the network can replay.
+
+JetStream WAL retention (e.g. 7 days) is not just an ops default — it can be a **protocol-level incentive**.
+
+Treat the WAL as the **hot/fresh window** and make anything older than $T$ (e.g. 7d) an explicit, paid “cold path”.
+
+### The rule
+
+- **Default retention:** events exist in JetStream for $T$ (ex: 7 days). After $T$, they expire.
+- **Freshness guarantee:** any query against “fresh lanes” is bounded by $T$ and therefore has predictable storage cost and predictable staleness.
+- **Opt-in permanence:** anyone can pay to “keep” (sponsor) selected material beyond $T$ via an archival storage market.
+
+This produces a clean split:
+
+- **Hot path (≤ $T$):** low-latency, cheap, freshness-first.
+- **Cold path (> $T$):** durable, paid retrieval with explicit SLAs.
+
+### Why this works (economics)
+
+- Operators can run the hot path at high throughput because storage does not grow without bound.
+- The long tail of historical data becomes a **market** instead of a silent cost center.
+- Users who actually need long-term memory fund it directly (or via sponsors/DAOs/curators).
+
+### Data model: what is actually archived
+
+Raw WAL segments are not a great user-facing artifact. The archival market should sell **queryable packs**, not “logs”.
+
+Quick definition:
+
+- [Packs (archival packs)](/docs/packs)
+
+Minimum useful “archival pack” content:
+
+- **Normalized documents** (content + metadata + provenance)
+- **Chunk map** (chunk IDs, offsets, citations)
+- **Embeddings** (or a deterministic recipe + model/version pin)
+- **Index hints** (topic tags, time range, source identifiers)
+- **Integrity manifest** (hashes/Merkle root over pack contents)
+
+Keyed by something like:
+
+- `(topic, source, time_range, schema_version, embedding_recipe_version)`
+
+### Retrieval behavior (how queries route)
+
+Define two retrieval modes:
+
+- **Fresh retrieval:** searches the latest $T$ window (JetStream-derived projections). Intended for “what changed?” and “latest on X”.
+- **Historical retrieval:** expands into archived packs (cold storage) and may have extra latency + explicit pricing.
+
+In practice, a query planner can do:
+
+1. Run fast retrieval across hot indices.
+2. If the user requests older context or the planner detects missing recall, price and fetch relevant cold packs.
+
+### Pricing primitives
+
+You can make this legible and composable using simple primitives:
+
+- **Storage price:** $/GB-month (or $/pack-month)
+- **Retrieval price:** $/retrieval + $/GB egress
+- **SLO price:** higher price for stricter latency/availability tiers
+
+Then expose two funding flows:
+
+- **Sponsor retention:** “keep this feed/topic for 90 days / 1 year”. Prepaid or streamed.
+- **Pay-per-retrieve:** “I need the 2023–2024 history for X”. Charged on demand.
+
+### Incentives: who gets paid
+
+- **Hot path rewards:** baseline operator rewards (or low metered retrieval fees).
+- **Cold storage rewards:** storage operators get:
+	- ongoing retention payments, and
+	- retrieval fees when packs are actually served.
+- **Curator/sponsor cut (optional):** if someone funded retention, they can receive a percentage of retrieval revenue.
+
+This creates a strong incentive to:
+
+- store high-value packs, and
+- publish good indexing metadata so the planner can find them (and thus generate retrieval events).
+
+### Proofs and accountability
+
+If you pay operators to store data, you need an auditable claim:
+
+- **Proof-of-custody:** periodic signed attestations over a pack inventory (e.g. Merkle root of `(pack_id, size, hash)` tuples).
+- **Serve-or-slash:** if an operator claims custody but fails to serve within the SLO window, apply penalties (stake slashing, removal from routing, loss of future assignments).
+- **Content integrity:** retrieval responses include the pack manifest hash so verifiers can detect tampering.
+
+### Replication and availability
+
+- Pick an explicit replication factor (e.g. 2–5) for cold packs.
+- Allow higher replication to be purchased.
+- Routing prefers cheapest operators that satisfy SLO + geo/egress constraints.
+
+### Extension: layered retention tiers (7d / 30d / 90d / 1y)
+
+The same market structure supports **retention tiers**:
+
+- baseline hot freshness window (e.g. 7d)
+- optional higher tiers where operators sell “deeper memory” (30d, 90d, 1y…), priced by storage + replication + SLO
+
+This creates a clean product ladder:
+
+- cheap, fast freshness for everyone
+- premium historical depth for users/DAOs who fund it
+
+It also gives the community a governance lever: decide which tiers are default, what replication factor is required, and what gets subsidized.
+
+### Operational notes
+
+- Keep $T$ small enough to make hot storage cheap (7d is a good starting point), but large enough to cover common “freshness” workloads.
+- Treat cold storage as heterogeneous (S3-like, local disks, specialized operators). The protocol should abstract it behind pack IDs + manifests.
+- The important part is not the exact value of $T$ — it’s the **incentive boundary** it creates.
+
+### Example flow: “fresh by default”, paid history on demand
+
+This is a concrete, operator-friendly walk-through of how a single feed becomes queryable, expires from the hot window, and later gets pulled back through the paid archival path.
+
+#### 0) Assumptions
+
+- $T = 7$ days JetStream retention for the raw WAL subject(s).
+- Hot indices/projections are derived continuously from JetStream.
+- Cold archives store “packs” (documents + embeddings + manifest) and advertise prices.
+
+#### 1) Ingest (hot window)
+
+1. A data operator ingests a feed (e.g. “security advisories”).
+2. Events are published into JetStream (WAL) with canonical metadata (source ID, timestamp, content hash, topic tags).
+3. Projection workers (operators) transform WAL events into:
+	- normalized docs + chunks,
+	- embeddings (pinned model/version),
+	- Helix/graph edges or neighborhood hints,
+	- hot indices that support low-latency retrieval.
+
+Result: queries over “last 7 days” are fast and cheap.
+
+#### 2) Expiry boundary (freshness guarantee)
+
+4. At day 8, the original WAL events have expired from JetStream.
+5. Hot indices can retain summaries/aggregates (optional), but **the source-of-truth events are gone** unless someone opted into archival.
+
+Result: the network stays bounded in cost, and freshness becomes a strong default.
+
+#### 3) Sponsor retention (opt-in “keep”) — optional
+
+6. A curator (or DAO) decides the feed is strategically valuable and creates a retention policy:
+	- “keep `security-advisories` packs for 1 year”
+	- replication factor = 3
+	- max retrieval latency tier = “standard”
+7. Storage operators bid prices for:
+	- $/GB-month (or $/pack-month)
+	- $/retrieval + egress
+8. The policy assigns custody of future packs to selected storage operators.
+
+Result: historical memory exists because someone is explicitly paying for it.
+
+#### 4) Archive pack creation (cold path)
+
+9. As time rolls forward, pack builders periodically seal archival packs, e.g.:
+	- `pack_id = security-advisories:2025-11-01..2025-11-07:v3`
+10. Each pack includes a manifest (hashes / Merkle root) and is stored by the selected storage operators.
+11. Storage operators publish a proof-of-custody heartbeat (signed) that commits to their current set of pack manifests.
+
+Result: custody claims are auditable, and packs are tamper-evident.
+
+#### 5) Query + routing + payment (paid retrieval)
+
+12. A user asks: “What were the critical advisories in early November, and how do they map to our dependency graph?”
+13. The planner runs hot retrieval first (last 7 days). It detects the request targets older time ranges.
+14. The planner prices the query:
+	- estimated packs needed,
+	- retrieval fees,
+	- expected latency.
+15. The user accepts the quote, and the system requests packs from the cheapest operators meeting the SLO.
+16. The operators serve the packs + manifests; the planner verifies integrity hashes.
+17. The answer is generated using:
+	- retrieved chunks (grounding),
+	- Helix neighborhood hydration (graph context),
+	- optional MCP tool calls (e.g., “build SBOM join”, “render report”, “generate patch-plan”).
+
+Result: historical depth is available, but it’s explicitly metered.
+
+#### 6) Settlement and enforcement
+
+18. Retrieval events are logged into the marketplace metering lane.
+19. Payout batcher allocates:
+	- storage retention revenue (time-based), and
+	- retrieval revenue (usage-based)
+	to the serving operators (and optionally the sponsor/curator cut).
+20. If an operator fails to serve within the SLO window while claiming custody, apply penalties and reassign replication.
+
+Result: you get a real, enforceable incentive loop.
+
+### More gold-standard examples (fit our tech stack)
+
+These are additional “native” DRAG use cases where JetStream + packs + Helix + operators + MCP/agents make the product materially better than “just RAG”.
+
+- **Compliance-grade audit trails:** keep 7d hot, archive policy-driven “evidence packs” (signed manifests) for 1–7 years, with paid retrieval for audits.
+- **Incident response memory:** stream logs/alerts for 7d; promote postmortem-relevant slices into immutable incident packs; agents generate timelines + root-cause candidates.
+- **Finance backtesting lanes:** hot window for live signals; archival packs for historical replays, priced by retrieval/compute; reproducible embedding recipes per model version.
+- **Software supply-chain intelligence:** ingest CVEs/advisories + package graphs; Helix neighborhoods map dependency exposure; cold packs provide historical exposure snapshots.
+- **Research “living reviews”:** operators continuously ingest papers; hot window supports “what’s new this week?”; archival packs support longitudinal literature review retrieval.
+- **Enterprise doc deltas:** ingest change events (diffs) rather than whole docs; 7d hot “recent changes”; archival retention for regulatory or contractual needs.
+- **Media semantic archives:** YouTube/podcast transcripts hot for the week; curated channels/topics archived as paid packs; agent tools generate clip packs + SEO packages.

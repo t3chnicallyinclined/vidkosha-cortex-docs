@@ -1,0 +1,64 @@
+---
+slug: helix-schema
+title: Helix schema
+---
+
+Helix is the **fast query layer**. JetStream (the WAL) is the source of truth.
+
+Think of Helix as “everything you want to answer quickly”, derived from the WAL and/or archival packs.
+
+## Why Helix is great for this use case
+
+- **Fast retrieval:** user-facing queries should hit an index/projection, not a raw event stream.
+- **Rebuildable state:** you can replay and regenerate the read model (critical for correctness and upgrades).
+- **Graph/neighborhood friendly:** DRAG-style retrieval benefits from explicit neighborhoods, provenance, and link structure.
+
+This is the same scaling move used in large systems: keep an append-only log for truth, and build many query-optimized views.
+
+## Projections: how data gets into Helix
+
+Projection operators consume WAL events and write Helix entities.
+
+Operator constraints to assume:
+
+- events may be duplicated (idempotency required)
+- ordering can be imperfect (design for reconciliation)
+- schema evolves (version fields and backfills are normal)
+
+Operational KPI:
+
+- projection consumer lag is your capacity pressure signal
+
+## Schema evolution (what “rebuildable” buys you)
+
+Rebuildability is not philosophical — it’s what lets you ship:
+
+- new embedding recipes
+- new indexing strategies
+- better chunking and provenance
+
+…without treating your database as an irreversible state machine.
+
+## Economics-relevant entities (what you’ll want indexed)
+
+The network becomes legible when Helix can answer questions like:
+
+- Which packs cover a topic/time range?
+- Which operators claim custody of which pack manifests?
+- Which operator served which retrieval requests?
+- What did a payout batch include?
+
+Some of these already exist in the legacy docs; some are planned. The guiding rule is consistent: **Helix indexes what the WAL and pack manifests make true.**
+
+## Training lane: what would be indexed (roadmap)
+
+For an accelerator-backed training market, Helix should be able to index and query:
+
+- dataset packs (IDs, manifests, provenance)
+- training job runs (inputs, recipe pins, costs)
+- model artifacts (hashes, metadata, evaluation summaries)
+- evaluation suites + regression results
+
+See:
+
+- [Training / accelerator lane](/docs/training-lane)

@@ -1,0 +1,116 @@
+---
+slug: dao-financial-architecture
+title: DAO + value flow
+---
+
+This page describes how money and governance work in Vidkosha Cortex: **customers pay for metered services**, operators do measurable work, and the DAO sets the rules.
+
+The goal is to be investable and operable:
+
+- Operators can forecast revenue because lanes have units, SLO tiers, and pricing.
+- Users can trust results because work is auditable (WAL + manifests + usage events).
+- Governance can evolve parameters without rewriting the core architecture.
+
+Chain integration is **optional** and can be introduced later as a verification/settlement layer without making it a dependency for the core business.
+
+## What the DAO governs
+
+At a high level, the DAO governs **lane economics and protocol policy**, not day-to-day operations.
+
+Examples of governable parameters:
+
+- **Lane definitions:** what counts as a billable work unit per lane (pack serve, transform/tool step, embeddings, inference, training/eval).
+- **SLO tiers:** how latency/availability tiers are defined and priced.
+- **Retention policy:** baseline hot window (e.g. 7d) and the allowed premium retention tiers (30d/90d/1y), including default replication targets.
+- **Fee policy:** what portion (if any) goes to a protocol treasury vs direct operator payouts.
+- **Routing policy defaults:** fairness constraints, geo preferences, anti-abuse throttles (kept minimal; most policy stays at the application/routing layer).
+
+## Value flow (from API call to operator payout)
+
+The simplest mental model:
+
+1. A user calls a metered API (retrieval, pack expansion, tool workflow, embeddings/inference).
+2. The request becomes one or more **missions** routed to operators.
+3. Operators execute work and emit **usage events**.
+4. Usage events are aggregated into **payout batches**.
+5. Payout batches are settled (off-chain first; optionally anchored on-chain later).
+
+What makes this work in practice is that **usage events are boring and verifiable**.
+
+## Usage events (the accounting primitive)
+
+A usage event is an append-only record that says:
+
+- who did the work (operator identity)
+- what lane and version ran (recipe/model/tool pins)
+- what units were consumed (lane-specific)
+- what SLO tier was targeted/achieved (latency/availability class)
+- what it cost (price quote and/or final bill)
+- correlation IDs (so the network can dedupe and audit)
+
+This is how the DAO can pay for work without relying on trust in a single operator.
+
+## Pricing (how this becomes a real business)
+
+Pricing is lane-specific, but the pattern is consistent:
+
+- **Unit-based billing:** bytes served, records returned, seconds of compute, tokens processed (depending on lane).
+- **Tiered SLOs:** “cheap/best-effort” vs “premium/low-latency/high-availability”.
+- **Hot vs cold economics:** hot retrieval stays fast/cheap; cold history is explicit and priced.
+
+This makes the product ladder legible:
+
+- Fast freshness window (baseline)
+- Paid archival packs (history)
+- Premium retention tiers (30d/90d/1y)
+- Higher-SLO routing (enterprise)
+
+## Operator revenue lanes (what investors should care about)
+
+Operators don’t get paid for “existing” — they get paid for delivering metered services:
+
+- **Pack serving:** hot packs and paid cold retrieval (archival packs).
+- **Transforms + workflows:** deterministic tool/MCP steps (rendering, parsing, summarizing, stitching, normalization).
+- **Embeddings + inference:** optional lanes for vector generation and model execution.
+- **Training/eval (future):** accelerator-backed jobs with reproducible inputs and published artifact manifests.
+
+The investment thesis: if the network can route, meter, and settle these lanes reliably, you get a compounding operator ecosystem with real unit economics.
+
+## Treasury (what it’s for)
+
+If the protocol takes a fee, a treasury is useful for:
+
+- subsidies for public-good ingestion (bootstrapping “Humanity’s Open Knowledge”)
+- grants for new lane implementations and operator tooling
+- security and audit funding
+- insurance/reserve funds (handling disputes, extreme outages, or clawbacks)
+
+Exact fee splits and treasury policy are governance choices; this doc focuses on the machinery that makes those choices enforceable.
+
+## Anti-fraud and dispute handling (why this won’t collapse)
+
+Any metered network needs a credible story for abuse:
+
+- **Idempotency + correlation IDs:** prevent double-billing.
+- **Version pins:** “what ran” is explicit and reproducible.
+- **Integrity manifests:** packs and artifacts are referenced by hashes/manifests.
+- **Audit windows:** allow challenges before batches are finalized.
+- **Rate limits and allowlists where needed:** especially for expensive lanes.
+
+Chain anchoring can strengthen this later (e.g., anchoring payout batch roots), but it’s not required to get real operator revenue started.
+
+## Governance posture (operator-friendly)
+
+Governance should optimize for:
+
+- stability of unit definitions and SLO tiers (so operators can invest)
+- slow-changing defaults with clear upgrade paths
+- emergency controls that are narrow and transparent
+
+Practical governance mechanisms can include proposal cycles, staged rollouts, and explicit deprecation windows for lane/version changes.
+
+Related:
+
+- [Marketplace + payouts](/docs/operator-marketplace)
+- [Operator Network v1](/docs/operator-network-v1)
+- [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)

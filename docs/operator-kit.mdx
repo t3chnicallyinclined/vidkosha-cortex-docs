@@ -1,0 +1,92 @@
+---
+slug: operator-kit
+title: Operator kit / bootstrap
+---
+
+A practical checklist for operators: get WAL + Helix healthy, then iterate on lanes (ingest, projection, packs, retrieval, tools).
+
+## 0) Pick your operator lane
+
+- **Ingest operator:** bring new sources into the WAL.
+- **Projection/index operator:** consume WAL events and update Helix.
+- **Pack builder / storage operator:** seal archival packs and serve retrieval.
+- **Tool/MCP operator:** provide deterministic transforms/rendering steps.
+- **Compute operator (optional):** embeddings, inference, and eventually training.
+
+If you’re starting from zero, the lowest-risk path is: *projection/index + pack serving*.
+
+## 1) Make the WAL boring
+
+- Confirm JetStream durability and retention policy (hot window target).
+- Ensure publishers fail loudly when JetStream is unhealthy.
+- Track consumer lag and set an SLO for “time to projection”.
+
+Observability baseline (operators should treat this as required):
+
+- WAL publish rate / error rate
+- consumer lag per projection lane
+- storage usage vs retention policy
+
+## 2) Make Helix queryable
+
+- Build at least one projection that answers a real user question quickly.
+- Make your projection idempotent and replay-safe.
+- Keep schema/version fields explicit so you can backfill.
+
+Query + serving observability:
+
+- retrieval latency p50/p95/p99 (hot vs cold)
+- error rates by lane (packs/tools/embeddings)
+- SLO compliance by operator capability tier
+
+## 3) Add paid history (archives)
+
+- Decide pack boundaries (topic + time range + recipe pins).
+- Seal packs with an integrity manifest.
+- Serve packs on demand and emit usage events.
+
+Reference:
+
+- [Packs (archival packs)](/docs/packs)
+
+If you want a clean operator business, wire dashboards to usage events so you can answer:
+
+- which lane generated revenue
+- which customers/topics are hot
+- which SLO tier is actually being purchased
+
+Canonical economics + flow:
+
+- [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
+
+## Optional lane: retention tiers (30d / 90d / 1y)
+
+Beyond the baseline hot window, operators can offer “deeper memory” tiers by retaining and serving archival packs for longer windows (priced by storage + replication + latency tier).
+
+This is a simple ladder:
+
+- 7d freshness (baseline)
+- 30d retention (mid-tier)
+- 90d/1y retention (premium)
+
+The community/DAO can decide which tiers are default and what gets subsidized.
+
+## Optional lane: host an MCP server
+
+Run tools agents can call reliably (retrieval, transforms, render steps) so end-to-end automation becomes a metered, auditable service.
+
+## Optional lane: semantic media archives
+
+Ingest/transcribe/embed curated YouTube/podcasts and serve them as a topic pack for semantic search.
+
+## Optional lane: training / accelerator provider (vision lane)
+
+If you have serious compute (GPU cluster / accelerator racks), the network’s long-term vision is to route training as a metered lane:
+
+- jobs reference dataset packs by manifest
+- preprocessing steps run as deterministic tools
+- results publish model artifacts + eval manifests
+
+See:
+
+- [Training / accelerator lane](/docs/training-lane)
