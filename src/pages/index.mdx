@@ -3,5 +3,8 @@ title: Vidkosha Cortex
 ---
 
 import { Redirect } from '@docusaurus/router';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
-<Redirect to="/docs/drag-tour" />
+export default function Home() {
+	return <Redirect to={useBaseUrl('/docs/vidkosha-cortex')} />;
+}

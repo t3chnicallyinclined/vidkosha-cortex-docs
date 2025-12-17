@@ -3,7 +3,8 @@ title: Legacy
 ---
 
 import { Redirect } from '@docusaurus/router';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 export default function Legacy() {
-	return <Redirect to="/docs/drag-tour" />;
+	return <Redirect to={useBaseUrl('/docs/drag-tour')} />;
 }
