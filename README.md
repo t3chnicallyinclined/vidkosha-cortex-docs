@@ -45,6 +45,22 @@ The workflow provides these env vars automatically during build:
 - `DOCUSAURUS_BASE_URL` (e.g. `/<repo-name>/`)
 - `DOCUSAURUS_ORG` / `DOCUSAURUS_REPO` / `DOCUSAURUS_REPO_URL`
 
+## Publish from this private repo
+
+If you keep `docs-site/` in this private repo but deploy from the public repo, use:
+
+```bash
+cd "/path/to/vidkosha_cortex (Private)"
+
+# 1) commit your docs-site changes (subtree split only includes commits)
+git add docs-site
+git commit -m "docs-site: <message>"
+git push origin staging
+
+# 2) publish docs-site/ to the public Pages repo
+./scripts/publish-docs-site.sh
+```
+
 ## Hosted URLs (important)
 
 If you deploy as a GitHub Pages **project site** (most common), the site lives under the repo name:
