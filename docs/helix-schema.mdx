@@ -3,15 +3,16 @@ slug: helix-schema
 title: Helix schema
 ---
 
-Helix is the **fast query layer**. JetStream (the WAL) is the source of truth.
+HelixDB is the **fast query layer**. JetStream (the WAL) is the source of truth.
 
-Think of Helix as “everything you want to answer quickly”, derived from the WAL and/or archival packs.
+Think of HelixDB as “everything you want to answer quickly”, derived from the WAL and/or archival packs.
 
-## Why Helix is great for this use case
+## Why HelixDB is great for this use case
 
 - **Fast retrieval:** user-facing queries should hit an index/projection, not a raw event stream.
 - **Rebuildable state:** you can replay and regenerate the read model (critical for correctness and upgrades).
-- **Graph/neighborhood friendly:** DRAG-style retrieval benefits from explicit neighborhoods, provenance, and link structure.
+- **Graph + neighborhoods:** DRAG-style retrieval benefits from explicit neighborhoods, provenance, and link structure.
+- **Vector + graph together:** semantic retrieval + neighbor hydration live in the same queryable projection.
 
 This is the same scaling move used in large systems: keep an append-only log for truth, and build many query-optimized views.
 
@@ -28,6 +29,12 @@ Operator constraints to assume:
 Operational KPI:
 
 - projection consumer lag is your capacity pressure signal
+
+## Links
+
+- HelixDB docs: https://docs.helix-db.com/
+- HQL: https://docs.helix-db.com/documentation/hql/hql
+- HelixDB GitHub: https://github.com/HelixDB/helix-db
 
 ## Schema evolution (what “rebuildable” buys you)
 
@@ -50,15 +57,4 @@ The network becomes legible when Helix can answer questions like:
 
 Some of these already exist in the legacy docs; some are planned. The guiding rule is consistent: **Helix indexes what the WAL and pack manifests make true.**
 
-## Training lane: what would be indexed (roadmap)
 
-For an accelerator-backed training market, Helix should be able to index and query:
-
-- dataset packs (IDs, manifests, provenance)
-- training job runs (inputs, recipe pins, costs)
-- model artifacts (hashes, metadata, evaluation summaries)
-- evaluation suites + regression results
-
-See:
-
-- [Training / accelerator lane](/docs/training-lane)

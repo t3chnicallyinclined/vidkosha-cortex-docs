@@ -2,7 +2,9 @@
 slug: vidkosha-cortex
 title: Vidkosha Cortex
 ---
-Vidkosha Cortex is an operator-run DRAG (Decentralized RAG): a low-latency knowledge fabric built from a WAL-first write plane, rebuildable read projections, and a metered operator execution plane.
+Vidkosha Cortex is an operator-run DRAG (Decentralized RAG): a low-latency knowledge fabric built from a WAL-first write plane, rebuildable read projections, and a metered operator execution plane — with **verifiability and settlement anchored on Nervos CKB**.
+
+Chain integration is currently gated during buildout. The “flip moment” is **go-live on CKB dev testnet**.
 
 If you’re new here:
 
@@ -18,11 +20,21 @@ If you’re new here:
 - **Freshness as a feature:** “Newest papers on X” and “What changed today?” becomes a default workflow.
 - **Real-time market intelligence:** news + filings + research feeds can be sifted and queried as they arrive.
 - **RAG at scale:** semantic search + graph neighborhood hydration (Helix) for grounded answers.
-- **Agents + MCP as the moat:** retrieval + toolcalls + workflows, not just chat completions.
-- **Operator-deployed inference services:** operators package workflows as callable endpoints (retrieval + tool steps + inference).
-- **Automated content pipelines (illustrative):** research → script → voice → clips → stitched output (10–30s segments).
-- **Semantic media archives (illustrative):** transcribe + embed YouTube/podcasts by topic and serve grounded search as queryable packs.
-- **SEO automation (illustrative):** upload a long podcast and get a packaging bundle (titles, chapters, descriptions, keywords, clip plan, thumbnail concepts).
+
+DRAG is the **retrieval** substrate: low-latency, grounded context with provenance.
+
+## Decentralized inference + specialized agents (execution plane)
+
+Separate from DRAG, Vidkosha Cortex is also a decentralized **execution** fabric: operators can run specialized agents and workflows (MCP tools, transforms, inference) as metered services.
+
+- **Agents + MCP workflows:** toolcalls + deterministic transforms + verifiable outputs.
+- **Decentralized inference services:** operators package workflows as callable endpoints (retrieval + tool steps + optional inference).
+
+Illustrative applications:
+
+- **Automated content pipelines:** research → script → voice → clips → stitched output (10–30s segments).
+- **Semantic media archives:** transcribe + embed long-form media and serve grounded search as packs.
+- **SEO packaging:** upload long content and generate a packaging bundle (titles, chapters, descriptions, keywords, clip plan, thumbnail concepts).
 
 ## Why Vidkosha Cortex is different
 
@@ -40,11 +52,23 @@ Vidkosha Cortex is a **service fabric**:
 
 We often describe Vidkosha Cortex as a **Thinking Fabric**: a network where knowledge is continuously ingested, indexed, served, and improved by operators — with replayable history and measurable work.
 
-The project name “Vidkosha” is inspired by *Vedic/Sanskrit* framing around **knowledge as something that can be cultivated, preserved, and transmitted**. We use that inspiration as a narrative compass (clarity, provenance, memory, and iteration), while keeping the engineering grounded in modern distributed-systems primitives.
+The name “Vidkosha” is a mash-up of two Sanskrit terms:
+
+- **Vidyā**: knowledge, learning, cultivated understanding
+- **Kośa**: a treasury/storehouse (and, in some Vedānta contexts, a “sheath” or layer)
+
+In engineering terms, the metaphor maps to a contract:
+
+- **Cultivation:** operators continuously ingest and refine into indexed projections.
+- **Preservation:** append-only history (WAL + packs) makes state replayable.
+- **Transmission:** manifests + commitments let others verify provenance.
+
+The goal is calm, legible systems: clarity, provenance, memory, and iteration — implemented with modern distributed-systems primitives.
 
 If you want the technical contract behind the “fabric” metaphor:
 
 - [Thinking Fabric v2 (NATS WAL)](/docs/thinking-fabric-wal)
+- [Thinking layers (observability)](/docs/thinking-fabric-wal#thinking-layers-observability)
 
 ## Architecture in one picture (the three planes)
 
@@ -63,8 +87,30 @@ Why this scales like Netflix/large streaming systems:
 Deep dives:
 
 - [Architecture overview](/docs/architecture-overview)
-- [WAL-first (JetStream)](/docs/wal-first)
 - [Helix schema (read model)](/docs/helix-schema)
+
+## Why Nervos CKB
+
+CKB is the anchoring rail because it is designed as a **Common Knowledge Base**: a minimal, verifiable substrate where commitments can live without dragging the hot path onto the chain.
+
+What we lean on:
+
+- **Cell model + capacity economics (CKBytes):** storage is explicitly scarce and priced; commitments live as minimal on-chain state.
+- **Scripts (lock/type) on CKB-VM (RISC-V):** verification logic is flexible without requiring a heavy smart-contract stack.
+- **PoW security + state-size discipline:** the model pushes long-term state pressure into an explicit economic system.
+
+Links:
+
+- CKB docs: https://docs.nervos.org/
+- How CKB works: https://docs.nervos.org/docs/getting-started/how-ckb-works
+- Node overview: https://docs.nervos.org/docs/node/node-overview
+- Scripts intro: https://docs.nervos.org/docs/script/intro-to-script
+- CKB repo: https://github.com/nervosnetwork/ckb
+- CKB indexer: https://github.com/nervosnetwork/ckb-indexer
+
+Related:
+
+- [Chain rollout (CKB dev testnet flip)](/docs/chain-rollout)
 
 ## Latency + scale (what we optimize for)
 
@@ -78,23 +124,36 @@ Mechanically, that comes from:
 
 The cold path (paid history) is allowed to be slower because it’s explicit, priced, and integrity-checked.
 
+## Why NATS (JetStream)
+
+JetStream is the write plane because it’s a pragmatic, scalable WAL with durable consumers:
+
+- append once, fan out to many operators
+- bounded retention economics (hot window)
+- replay to rebuild projections deterministically
+
+Links:
+
+- NATS docs: https://docs.nats.io/
+- JetStream overview: https://docs.nats.io/nats-concepts/jetstream
+
 ## Observability-first operations (a hidden superpower)
 
 Because the fabric is WAL-first and work is routed as explicit missions, operators get unusually clean observability:
 
 - JetStream health + consumer lag tells you “is the network ingesting and projecting?”
-- per-lane latency (p50/p95/p99) tells you “is retrieval/tools/inference meeting SLOs?”
+- per-service latency (p50/p95/p99) tells you “is retrieval/tools/inference meeting SLOs?”
 - usage events tie performance to payouts (“what actually generated revenue?”)
 
 Two practical consequences:
 
-- **Lagging topics become visible demand:** operators can see which lanes are behind and add capacity to earn.
+- **Lagging topics become visible demand:** operators can see which services are behind and add capacity to earn.
 - **Semantic demand signals (aggregate):** operators can see what’s being asked for as topic/cluster aggregates (not raw prompts), so they can build and deploy the right endpoints.
 - **Discovery stays sane:** NATS wildcards help routing/ops, but the marketplace can be indexed (Helix) so users search a catalog by topic/coverage/SLO/price.
 
 This is the practical difference vs opaque AI stacks: you can run Grafana dashboards, see exactly where time/cost is spent, and tune routing, caching, pack replication, and recipe/version rollouts with confidence.
 
-## Layered retention tiers (community-defined storage lanes)
+## Layered retention tiers (community-defined storage tiers)
 
 The 7-day hot window is the baseline, but the network can support **retention tiers** as a market:
 
@@ -114,8 +173,7 @@ The network’s moat is not just “retrieval exists” — it’s that workflow
 
 - pack serving (hot/cold)
 - transforms/rendering via MCP tools
-- embeddings and inference (optional lanes)
-- evaluation and (future) fine-tuning/training
+- embeddings and inference (optional services)
 
 This is what makes operator rewards sustainable: there are clear, valuable services users pay for.
 
@@ -123,13 +181,22 @@ Design goal: those services are accessible via **stable, metered APIs** (retriev
 
 - [Operator Network v1](/docs/operator-network-v1)
 - [Marketplace + payouts](/docs/operator-marketplace)
-- [Training / accelerator lane (vision)](/docs/training-lane)
+
 
 ## One more superpower: time-travel RAG
 
 Because history is replayable (WAL) and sealable (archival packs), you can spin up a “RAG as-of date $D$” and serve it for audits, backtests, and incident forensics.
 
 - [Time-travel RAG (architecture)](/docs/architecture-overview)
+
+## Off-chain mode (self-hosted)
+
+Vidkosha Cortex can also be deployed as an off-chain knowledge fabric for personal/company use cases:
+
+- same WAL-first + rebuildable projections + operator services
+- no requirement to anchor commitments or settle on a chain
+
+This mode is useful when you want the stack and the discipline without tying your deployment to external settlement.
 
 ## Legacy (during migration)
 

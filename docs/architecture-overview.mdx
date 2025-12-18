@@ -3,7 +3,7 @@ slug: architecture-overview
 title: Architecture overview
 ---
 
-This is the mental model to hold in your head as an operator or investor: **Vidkosha Cortex is a “thinking fabric” built like large-scale streaming + low-latency systems**.
+This is the mental model to hold in your head as an operator, builder, or stakeholder: **Vidkosha Cortex is a “thinking fabric” built like large-scale streaming + low-latency systems**.
 
 Instead of hiding state inside opaque services, we make the network legible:
 
@@ -31,8 +31,13 @@ Why it’s great for this use case:
 How it scales to millions:
 
 - **Subject partitioning** becomes your sharding key (by tenant/topic/source/time bucket).
-- **Many independent durable consumers** process different lanes without coupling.
+- **Many independent durable consumers** process different subject families/workflows without coupling.
 - **Hot retention is bounded** (e.g. 7d), so the network avoids unbounded storage costs while still being “fresh by default”.
+
+Links:
+
+- NATS docs: https://docs.nats.io/
+- JetStream overview: https://docs.nats.io/nats-concepts/jetstream
 
 ### 2) Read plane: HelixDB (rebuildable projection)
 
@@ -48,6 +53,11 @@ Scaling intuition:
 
 - You can run **multiple projections** (different indices, different query shapes) without changing writers.
 - You can run **projection operators horizontally** (consumer lag becomes your capacity signal).
+
+Links:
+
+- HelixDB docs: https://docs.helix-db.com/
+- HQL: https://docs.helix-db.com/documentation/hql/hql
 
 ### 3) Execution plane: Operators (workers/providers)
 
@@ -110,7 +120,7 @@ This architecture is unusually observable because “truth” and “work” are
 
 - **WAL health:** JetStream stream health, publish rates, storage usage, and consumer lag.
 - **Projection health:** lag-to-index (how long from WAL event to Helix availability).
-- **Work health:** per-lane request latency (p50/p95/p99), error rates, and SLO compliance.
+- **Work health:** per-service request latency (p50/p95/p99), error rates, and SLO compliance.
 - **Economics:** usage events tie operator performance to payouts (what earned, where, and why).
 
 Operators can run standard tooling (Prometheus/Grafana-style dashboards) to see where the AI system is slow, expensive, or stale — and then tune routing policies, pack replication, caching, and recipe/version rollouts.
@@ -139,7 +149,7 @@ High-value use cases:
 - **Model evaluation regression:** test new models against old corpora with reproducible snapshots.
 - **Enterprise change control:** compare “RAG before policy/doc updates” vs “after” and quantify drift.
 
-This is also a monetizable operator lane: operators can sell “snapshot serving” as a priced service (build + host + serve a historical index).
+This is also a monetizable operator service: operators can sell “snapshot serving” as a priced service (build + host + serve a historical index).
 
 ## Why this beats “decentralized storage latency” (IPFS-style pitfalls)
 
@@ -154,23 +164,10 @@ Vidkosha Cortex is designed to feel like a low-latency service because:
 
 - **Hot window is local and indexed:** fresh queries hit Helix projections derived from the WAL.
 - **Operators provide real services with SLOs:** retrieval, pack serving, transforms, embeddings, inference, and eventually training.
+- **Operators provide real services with SLOs:** retrieval, pack serving, transforms, embeddings, inference.
 - **Routing is policy-driven:** choose providers by price + SLO + geo/egress, not “who happens to have the CID”.
 - **Cold history is explicit and paid:** archives aren’t a hope-and-pray DHT fetch; they’re a market of storage operators who earn revenue by serving packs reliably.
 
 This is the core operator thesis: operators aren’t “just hosting blobs” — they run valuable, metered services that directly create network utility and therefore justify rewards.
 
-## New lane: training / fine-tuning (accelerator backends)
 
-The same three-plane architecture extends naturally to a “training lane”:
-
-- **WAL:** training jobs, dataset pack references, eval requests, and result manifests are events.
-- **Helix:** indexes datasets, job provenance, model artifacts, and evaluation summaries.
-- **Operators:** provide GPU/accelerator capacity (imagine Vidkosha Cortex behind a datacenter of Cerebras-class or GPU clusters), run deterministic preprocessing tools, and serve model artifacts.
-
-What makes this lane compelling (operator/investor view):
-
-- **Metered compute becomes a first-class product:** training/eval jobs are priced, routed, and settled like any other operator service.
-- **Reproducibility as a differentiator:** datasets are referenced by pack IDs + manifests; model recipes are versioned; results are auditable.
-- **Capacity scales linearly:** add more accelerator providers, increase concurrency; the WAL + planner coordinates.
-
-This is a *vision/roadmap lane* (not all plumbing is implemented today), but it fits the architecture cleanly because the fabric already treats “work” as composable, routable, and payable.

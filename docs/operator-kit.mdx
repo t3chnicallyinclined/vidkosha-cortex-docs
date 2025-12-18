@@ -3,15 +3,15 @@ slug: operator-kit
 title: Operator kit / bootstrap
 ---
 
-A practical checklist for operators: get WAL + Helix healthy, then iterate on lanes (ingest, projection, packs, retrieval, tools).
+A practical checklist for operators: get WAL + Helix healthy, then iterate on services (ingest, projection, packs, retrieval, tools).
 
-## 0) Pick your operator lane
+## 0) Pick your operator role (service) {#0-pick-your-operator-lane}
 
 - **Ingest operator:** bring new sources into the WAL.
 - **Projection/index operator:** consume WAL events and update Helix.
 - **Pack builder / storage operator:** seal archival packs and serve retrieval.
 - **Tool/MCP operator:** provide deterministic transforms/rendering steps.
-- **Compute operator (optional):** embeddings, inference, and eventually training.
+- **Compute operator (optional):** embeddings and/or inference.
 
 If you’re starting from zero, the lowest-risk path is: *projection/index + pack serving*.
 
@@ -24,7 +24,7 @@ If you’re starting from zero, the lowest-risk path is: *projection/index + pac
 Observability baseline (operators should treat this as required):
 
 - WAL publish rate / error rate
-- consumer lag per projection lane
+- consumer lag per projection consumer group
 - storage usage vs retention policy
 
 ## 2) Make Helix queryable
@@ -36,7 +36,7 @@ Observability baseline (operators should treat this as required):
 Query + serving observability:
 
 - retrieval latency p50/p95/p99 (hot vs cold)
-- error rates by lane (packs/tools/embeddings)
+- error rates by service class (packs/tools/embeddings)
 - SLO compliance by operator capability tier
 
 ## 3) Add paid history (archives)
@@ -51,7 +51,7 @@ Reference:
 
 If you want a clean operator business, wire dashboards to usage events so you can answer:
 
-- which lane generated revenue
+- which service generated revenue
 - which customers/topics are hot
 - which SLO tier is actually being purchased
 
@@ -59,7 +59,28 @@ Canonical economics + flow:
 
 - [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
 
-## Optional lane: retention tiers (30d / 90d / 1y)
+## 4) Secure the fabric (NATS nkeys)
+
+The operator-side security model to target is: **fast rotation, least privilege, and “deny by default” subject access**.
+
+Minimal posture:
+
+- **NATS identity via nkeys** for operators.
+- **Least-privilege permissions** (publish/subscribe allowlists), scoped to exactly what an operator provides.
+- **Easy revocation/rotation:** if you suspect compromise, rotate keys and cut the operator out of routing.
+
+Practical policy design:
+
+- separate subject families: ingest facts vs mission/work requests vs metering/settlement
+- use subject patterns to enforce boundaries: tenant/topic scoped subjects
+- default to read-only when possible (e.g. pack-serving operators subscribe to request subjects and publish responses + usage events)
+
+Key separation:
+
+- one identity for NATS transport permissions
+- a separate identity for economic settlement (chain signatures)
+
+## Optional: retention tiers (30d / 90d / 1y) {#optional-lane-retention-tiers-30d--90d--1y}
 
 Beyond the baseline hot window, operators can offer “deeper memory” tiers by retaining and serving archival packs for longer windows (priced by storage + replication + latency tier).
 
@@ -71,22 +92,12 @@ This is a simple ladder:
 
 The community/DAO can decide which tiers are default and what gets subsidized.
 
-## Optional lane: host an MCP server
+## Optional: host an MCP server {#optional-lane-host-an-mcp-server}
 
 Run tools agents can call reliably (retrieval, transforms, render steps) so end-to-end automation becomes a metered, auditable service.
 
-## Optional lane: semantic media archives
+## Optional: semantic media archives {#optional-lane-semantic-media-archives}
 
 Ingest/transcribe/embed curated YouTube/podcasts and serve them as a topic pack for semantic search.
 
-## Optional lane: training / accelerator provider (vision lane)
 
-If you have serious compute (GPU cluster / accelerator racks), the network’s long-term vision is to route training as a metered lane:
-
-- jobs reference dataset packs by manifest
-- preprocessing steps run as deterministic tools
-- results publish model artifacts + eval manifests
-
-See:
-
-- [Training / accelerator lane](/docs/training-lane)

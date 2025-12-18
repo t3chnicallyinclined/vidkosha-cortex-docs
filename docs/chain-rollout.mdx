@@ -1,24 +1,28 @@
 ---
 slug: chain-rollout
-title: Chain rollout (optional)
+title: Chain rollout (CKB dev testnet flip)
 ---
 
-Chain integration is **additive**: off-chain first, hash-only first, and disabled by default.
+Chain integration is a core part of the Vidkosha Cortex end-state: **verifiability + registry + settlement** anchored on **Nervos CKB**.
 
-The goal is to get real operator revenue and real workloads working **without** forcing every request onto a blockchain.
+Today, chain integration is still **gated during buildout** (feature-flagged and safe modes like log-only).
 
-For investors: this lowers product risk and time-to-revenue.
+**Flip moment:** we go *live* when we enable real anchoring on **CKB dev testnet**.
+
+The goal is to keep the hot path fast while making the system externally verifiable: do real work off-chain, but make the outcomes auditable on-chain.
+
+For stakeholders: this lowers adoption risk and accelerates credible go-to-market.
 
 For operators: this keeps latency, complexity, and operational overhead under control.
 
 ## Design principles
 
-- **Off-chain business first:** routing, metering, and payouts should work without a chain.
 - **Hash-only on-chain:** store commitments (roots/hashes), not raw data.
-- **Minimize on-chain surface:** keep the chain layer a verification/settlement option, not the runtime.
-- **No chain-specific assumptions:** the architecture should support an EVM L2 or similar, but not depend on one.
+- **Keep the hot path off-chain:** low-latency retrieval and operator work stay off-chain; the chain provides auditability and settlement.
+- **Minimize on-chain surface:** anchor only what you need to prove history, identity, and payouts.
+- **CKB-first implementation:** Nervos CKB is the reference rail for chain integration.
 
-## What we would anchor on-chain (if/when enabled)
+## What we anchor on-chain (at go-live)
 
 The chain layer is for *commitments* and *settlement*, not for serving data.
 
@@ -32,11 +36,11 @@ None of the above requires on-chain execution for the hot path.
 
 ## Phased rollout (operator-friendly)
 
-### Phase 0: Off-chain-only (default)
+### Phase 0: Gated buildout (today)
 
-- Operators run lanes and emit usage events.
+- Operators run services and emit usage events.
 - The network aggregates usage into payout batches off-chain.
-- Audits/disputes are handled by policy and logs (WAL + manifests + event IDs).
+- Chain integration exists behind safe gates (feature flag + env + log-only / mock modes).
 
 This phase is enough to launch paid APIs and operator businesses.
 
@@ -58,7 +62,7 @@ This is a credibility upgrade, not a requirement.
 
 If the market demands it, introduce stronger enforcement mechanisms (carefully):
 
-- staking requirements for certain lanes/SLO tiers
+- staking requirements for certain services/SLO tiers
 - slashing or escrow for provable fraud
 - formal dispute games for contested batches
 
@@ -66,14 +70,37 @@ These are higher complexity and should be introduced only when the volume and ad
 
 ## Operator impact
 
-Operators should not need a chain node to run the core business.
+At go-live, operators and network services should expect a chain dependency for chain integration.
+
+That does **not** mean every request executes on-chain. It means the network can:
+
+- publish commitments for payout batches and manifests
+- read a registry for operator identity and payout routing
+- (optionally) settle on-chain when that mode is selected
 
 At most, chain integration should require:
 
 - reading checkpoint events (batch roots) for verification
 - optionally participating in settlement if they choose that payout mode
 
-## Investor view (why this sequencing matters)
+## Off-chain mode (self-hosted)
+
+Vidkosha Cortex can also be deployed as an off-chain knowledge fabric for personal/company use cases:
+
+- same WAL-first + rebuildable projections architecture
+- no requirement to anchor or settle on a chain
+
+This is useful when you want the stack (NATS WAL + Helix projections + operator services) without tying your deployment to external settlement.
+This is useful when you want the stack (NATS WAL + Helix projections + operator services) without tying your deployment to external settlement.
+
+
+## Links
+
+- Nervos CKB docs: https://docs.nervos.org/
+- CKB node: https://github.com/nervosnetwork/ckb
+- CKB indexer: https://github.com/nervosnetwork/ckb-indexer
+
+## Stakeholder view (why this sequencing matters)
 
 This rollout order is about de-risking:
 

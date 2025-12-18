@@ -51,7 +51,7 @@ Treat the WAL as the **hot/fresh window** and make anything older than $T$ (e.g.
 ### The rule
 
 - **Default retention:** events exist in JetStream for $T$ (ex: 7 days). After $T$, they expire.
-- **Freshness guarantee:** any query against “fresh lanes” is bounded by $T$ and therefore has predictable storage cost and predictable staleness.
+- **Freshness guarantee:** any query against the hot/fresh window is bounded by $T$ and therefore has predictable storage cost and predictable staleness.
 - **Opt-in permanence:** anyone can pay to “keep” (sponsor) selected material beyond $T$ via an archival storage market.
 
 This produces a clean split:
@@ -227,7 +227,7 @@ Result: historical depth is available, but it’s explicitly metered.
 
 #### 6) Settlement and enforcement
 
-18. Retrieval events are logged into the marketplace metering lane.
+18. Retrieval events are logged into the marketplace metering subjects/stream.
 19. Payout batcher allocates:
 	- storage retention revenue (time-based), and
 	- retrieval revenue (usage-based)
@@ -242,7 +242,7 @@ These are additional “native” DRAG use cases where JetStream + packs + Helix
 
 - **Compliance-grade audit trails:** keep 7d hot, archive policy-driven “evidence packs” (signed manifests) for 1–7 years, with paid retrieval for audits.
 - **Incident response memory:** stream logs/alerts for 7d; promote postmortem-relevant slices into immutable incident packs; agents generate timelines + root-cause candidates.
-- **Finance backtesting lanes:** hot window for live signals; archival packs for historical replays, priced by retrieval/compute; reproducible embedding recipes per model version.
+- **Finance backtesting workflows:** hot window for live signals; archival packs for historical replays, priced by retrieval/compute; reproducible embedding recipes per model version.
 - **Software supply-chain intelligence:** ingest CVEs/advisories + package graphs; Helix neighborhoods map dependency exposure; cold packs provide historical exposure snapshots.
 - **Research “living reviews”:** operators continuously ingest papers; hot window supports “what’s new this week?”; archival packs support longitudinal literature review retrieval.
 - **Enterprise doc deltas:** ingest change events (diffs) rather than whole docs; 7d hot “recent changes”; archival retention for regulatory or contractual needs.

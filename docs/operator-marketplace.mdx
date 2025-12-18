@@ -9,20 +9,20 @@ If the network can’t measure work, it can’t pay for work — and you don’t
 
 ## What is actually being traded
 
-The “marketplace” is not a UI first. It’s a set of protocol lanes:
+The “marketplace” is not a UI first. It’s a set of protocol surfaces:
 
 - **capability advertisement** (what an operator offers)
 - **routing** (how missions pick providers)
 - **usage events** (what happened, with pricing + SLO metadata)
 - **payout batching** (how rewards are aggregated and settled)
 
-This is how you get a system that can scale to millions of requests: you don’t manually coordinate providers; you route by lane.
+This is how you get a system that can scale to millions of requests: you don’t manually coordinate providers; you route by subject + service capability.
 
 ## Discovery vs. routing (Helix search vs NATS wildcards)
 
 It’s tempting to think “marketplace search” is just NATS subject wildcards (`topic.*`, `topic.>`). In practice:
 
-- **NATS subjects + wildcards** are best for **routing and ops** (subscribing to a known lane, sharding, and enforcing permissions).
+- **NATS subjects + wildcards** are best for **routing and ops** (subscribing to a known subject family/service, sharding, and enforcing permissions).
 - **Marketplace discovery/search** should be backed by an **index/catalog** (Helix), so users can search topics/providers by metadata (coverage window, price, SLO tier, replication) without already knowing subject naming conventions.
 
 Operationally, wildcards can still help operators monitor what they’re responsible for; the user-facing marketplace should feel like a searchable catalog.
@@ -39,7 +39,7 @@ Vidkosha’s marketplace flips the premise:
 
 This also makes ops sane:
 
-- operators can put Grafana-style dashboards over lane latency, error rates, and consumer lag
+- operators can put Grafana-style dashboards over service latency, error rates, and consumer lag
 - routing/payouts become debuggable (“what got selected, why, and what did it cost?”)
 
 And it creates a natural product ladder:
@@ -64,8 +64,8 @@ Metering needs to be boring and machine-verifiable:
 
 - work unit ID (idempotency)
 - operator identity
-- lane + recipe/model/version pins
-- bytes/records/seconds (depending on lane)
+- service + recipe/model/version pins
+- bytes/records/seconds (depending on service)
 - SLO tier (latency/availability)
 - price quote vs actual usage
 
@@ -82,20 +82,4 @@ Detailed design:
 
 - [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
 
-## New revenue lane: training / fine-tuning / eval
 
-If you want node operators to run accelerators, the network needs a first-class way to price and settle:
-
-- **training jobs** (dataset pack + recipe pins → model artifact)
-- **evaluation jobs** (standard eval suites, safety checks, regression gating)
-- **artifact hosting** (model files and manifests served with integrity)
-
-What makes it investable:
-
-- compute is metered like any other operator lane
-- results are reproducible (pack + manifest references)
-- routing can optimize for price, SLO, and geography
-
-See:
-
-- [Training / accelerator lane](/docs/training-lane)

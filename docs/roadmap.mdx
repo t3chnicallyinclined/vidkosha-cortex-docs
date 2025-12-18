@@ -3,7 +3,7 @@ slug: roadmap
 title: Roadmap
 ---
 
-A simple Now/Next/Later view for operators and builders. This is deliberately written in terms of **operator lanes** and **what becomes monetizable**.
+A simple Now/Next/Later view for operators and builders. This is deliberately written in terms of **operator services** and **what becomes monetizable**.
 
 This is not a promise of exact dates. It’s a sequencing plan that prioritizes: (1) real usage, (2) measurable operator work, (3) settlement/verifiability upgrades.
 
@@ -12,13 +12,13 @@ This is not a promise of exact dates. It’s a sequencing plan that prioritizes:
 - **WAL + projection loop robustness:** replayable streams, idempotent projections, visible lag, and “rebuild from log” discipline.
 - **Archive market is real:** pack manifests and integrity checks, clear hot vs cold retrieval, paid archival retrieval metering.
 - **Operator work is legible:** usage events → aggregation → payout batches.
-- **Operator lane templates:** starter lanes that are easy to deploy and sell (retrieval, pack serving, tools/MCP workflows; optional embeddings/inference).
-- **Observability-first:** lane latency + error budgets + consumer lag dashboards that connect directly to routing and payouts.
-- **Chain integration stays optional:** off-chain first so the network can ship revenue before adding on-chain commitments.
+- **Operator service templates:** starter services that are easy to deploy and sell (retrieval, pack serving, tools/MCP workflows; optional embeddings/inference).
+- **Observability-first:** service latency + error budgets + consumer lag dashboards that connect directly to routing and payouts.
+- **Chain integration is gated during buildout:** ship operator revenue first, then flip on CKB dev testnet and harden anchoring/settlement.
 
 Success looks like:
 
-- operators can deploy a lane and get paid for real requests
+- operators can deploy a service and get paid for real requests
 - users can choose between SLO/price tiers
 - the system can be audited from logs/manifests when something goes wrong
 
@@ -26,32 +26,25 @@ Success looks like:
 
 - **Better query planning:** hot-first retrieval, priced cold expansion, integrity verification, predictable “what will this cost?” behavior.
 - **Stronger routing:** SLO tiers, geo/egress-aware selection, fairness policies, and explicit degradation paths.
-- **More lane products:** pack-backed vertical offerings (media packs, compliance packs, market monitoring, incident intelligence).
+- **More service products:** pack-backed vertical offerings (media packs, compliance packs, market monitoring, incident intelligence).
 - **Catalog-quality discovery:** marketplace discovery/search backed by an index (Helix), not subject naming conventions.
 - **Auditability upgrades:** clearer dispute windows, batch finalization rules, and optional hash-only checkpointing.
 
 Success looks like:
 
-- operators can specialize by lane and differentiate on SLO/coverage
+- operators can specialize by service and differentiate on SLO/coverage
 - the marketplace feels like a searchable catalog with clear pricing
 - payouts are predictable and explainable (“why did I earn X?”)
 
 ## Later
 
-- Training/fine-tuning as a first-class provider lane (accelerator-backed operators):
-	- job envelopes + dataset pack references
-	- deterministic preprocessing/tool steps
-	- model artifact + eval manifest publication
-	- settlement tied to compute + SLO
-
-Also later (only when justified by scale/adversarial pressure):
+Later (only when justified by scale/adversarial pressure):
 
 - optional on-chain commitments for payout batch roots and/or pack manifests
 - optional on-chain settlement modes
-- stronger enforcement mechanisms (staking/escrow/slashing) for premium lanes
+- stronger enforcement mechanisms (staking/escrow/slashing) for premium SLO tiers
 
 See:
-
-- [Training / accelerator lane](/docs/training-lane)
 - [DAO + value flow](/docs/dao-financial-architecture)
-- [Chain rollout (optional)](/docs/chain-rollout)
+- [Chain rollout (CKB dev testnet flip)](/docs/chain-rollout)
+

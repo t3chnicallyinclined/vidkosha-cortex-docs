@@ -1,78 +1,82 @@
 :root {
-  --ifm-color-primary: #6ee7ff;
-  --ifm-color-primary-dark: #41dcff;
-  --ifm-color-primary-darker: #2fd6ff;
-  --ifm-color-primary-darkest: #00c7f4;
-  --ifm-color-primary-light: #9bf2ff;
-  --ifm-color-primary-lighter: #adf6ff;
-  --ifm-color-primary-lightest: #d9fdff;
+  /* Vedic wisdom palette */
+  --vk-saffron: #E49B0F;
+  --vk-deep-indigo: #1A237E;
+  --vk-ash-white: #F3F1EC;
+  --vk-peacock: #005F73;
+  --vk-sacred-red: #8B1E1E;
+  --vk-forest: #1B5E20;
+  --vk-antique-gold: #C9A24D;
+  --vk-copper: #B87333;
 
   --ifm-font-family-base: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   --ifm-font-family-monospace: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  --vk-bg: #050714;
-  --vk-panel: rgba(16, 22, 46, 0.72);
-  --vk-panel2: rgba(12, 18, 40, 0.70);
-  --vk-text: #eaf1ff;
-  --vk-muted: rgba(234, 241, 255, 0.72);
-  --vk-brand2: #b88cff;
-  --vk-border: rgba(255,255,255,0.10);
+  /* Light theme (default) */
+  --ifm-color-primary: var(--vk-saffron);
+  --ifm-color-primary-dark: #CC8A0D;
+  --ifm-color-primary-darker: #BE810D;
+  --ifm-color-primary-darkest: #9D6A0A;
+  --ifm-color-primary-light: #F0AD28;
+  --ifm-color-primary-lighter: #F3B63B;
+  --ifm-color-primary-lightest: #F8D58A;
 
-  /* Force a readable dark baseline even when the UI is in "light" mode. */
-  --ifm-background-color: var(--vk-bg);
-  --ifm-background-surface-color: rgba(16, 22, 46, 0.55);
-  --ifm-font-color-base: var(--vk-text);
-  --ifm-color-content: var(--vk-text);
-  --ifm-color-content-secondary: var(--vk-muted);
-  --ifm-link-color: var(--ifm-color-primary);
-  --ifm-navbar-link-color: var(--vk-text);
-  --ifm-navbar-background-color: transparent;
+  --ifm-background-color: var(--vk-ash-white);
+  --ifm-background-surface-color: #FFFFFF;
+
+  /* Body text: dark indigo (calm, authoritative) */
+  --ifm-font-color-base: var(--vk-deep-indigo);
+  --ifm-color-content: var(--vk-deep-indigo);
+  --ifm-color-content-secondary: rgba(26, 35, 126, 0.74);
+
+  /* Links: peacock blue for contrast on ash white */
+  --ifm-link-color: var(--vk-peacock);
+  --ifm-navbar-link-color: var(--vk-deep-indigo);
+  --ifm-navbar-background-color: var(--ifm-background-surface-color);
+
+  /* Subtle borders */
+  --vk-border: rgba(26, 35, 126, 0.14);
+  --vk-panel: rgba(26, 35, 126, 0.03);
+  --vk-panel2: rgba(26, 35, 126, 0.05);
 }
 
 html[data-theme='dark'] {
-  --ifm-background-color: var(--vk-bg);
-  --ifm-font-color-base: var(--vk-text);
-  --ifm-color-content: var(--vk-text);
-  --ifm-color-content-secondary: var(--vk-muted);
-}
+  --ifm-color-primary: var(--vk-saffron);
+  --ifm-link-color: var(--vk-antique-gold);
 
-html[data-theme='light'] {
-  --ifm-background-color: var(--vk-bg);
-  --ifm-background-surface-color: rgba(16, 22, 46, 0.55);
-  --ifm-font-color-base: var(--vk-text);
-  --ifm-color-content: var(--vk-text);
-  --ifm-color-content-secondary: var(--vk-muted);
-  --ifm-link-color: var(--ifm-color-primary);
-  --ifm-navbar-link-color: var(--vk-text);
-  --ifm-navbar-background-color: transparent;
+  --ifm-background-color: var(--vk-deep-indigo);
+  --ifm-background-surface-color: rgba(243, 241, 236, 0.06);
+  --ifm-font-color-base: var(--vk-ash-white);
+  --ifm-color-content: var(--vk-ash-white);
+  --ifm-color-content-secondary: rgba(243, 241, 236, 0.78);
+  --ifm-navbar-link-color: var(--vk-ash-white);
+
+  --vk-border: rgba(243, 241, 236, 0.16);
+  --vk-panel: rgba(243, 241, 236, 0.06);
+  --vk-panel2: rgba(243, 241, 236, 0.09);
 }
 
 body {
-  background:
-    radial-gradient(1100px 700px at 15% 10%, rgba(110,231,255,0.20), transparent 60%),
-    radial-gradient(900px 600px at 88% 16%, rgba(184,140,255,0.18), transparent 60%),
-    radial-gradient(900px 700px at 48% 105%, rgba(114,247,197,0.10), transparent 60%),
-    radial-gradient(700px 600px at 60% 30%, rgba(255,111,167,0.08), transparent 62%),
-    radial-gradient(2px 2px at 20% 25%, rgba(234,241,255,0.22), transparent 60%),
-    radial-gradient(2px 2px at 70% 35%, rgba(234,241,255,0.18), transparent 60%),
-    radial-gradient(1.5px 1.5px at 55% 80%, rgba(234,241,255,0.16), transparent 60%),
-    radial-gradient(1.5px 1.5px at 30% 78%, rgba(234,241,255,0.14), transparent 60%),
-    linear-gradient(180deg, rgba(7,10,24,0.0), rgba(7,10,24,0.35) 60%, rgba(7,10,24,0.65)),
-    var(--vk-bg);
+  background: var(--ifm-background-color);
 }
 
-/* Ensure markdown/doc text is readable on the dark background. */
-.markdown,
-.theme-doc-markdown {
-  color: var(--vk-text);
+/* Headings: saffron (as requested) */
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6,
+.theme-doc-markdown h1,
+.theme-doc-markdown h2,
+.theme-doc-markdown h3,
+.theme-doc-markdown h4,
+.theme-doc-markdown h5,
+.theme-doc-markdown h6 {
+  color: var(--vk-saffron);
 }
 
-.markdown a,
-.theme-doc-markdown a {
-  color: var(--ifm-link-color);
-}
-
-/* Keep subtle separators visible. */
+/* Keep separators subtle and readable */
 .theme-doc-sidebar-container,
 .theme-doc-footer,
 .theme-doc-toc-desktop {
@@ -80,7 +84,6 @@ body {
 }
 
 .navbar {
-  background: linear-gradient(180deg, rgba(16,22,46,0.80), rgba(12,18,40,0.55));
   border-bottom: 1px solid var(--vk-border);
 }
 
@@ -93,9 +96,10 @@ body {
   border: 1px solid var(--vk-border);
 }
 
+/* Reuse existing helper classes with the new palette */
 .vk-hero {
   border: 1px solid var(--vk-border);
-  background: linear-gradient(180deg, rgba(16,22,46,0.80), rgba(12,18,40,0.55));
+  background: var(--vk-panel2);
   border-radius: 18px;
   padding: 28px 18px;
 }
@@ -103,13 +107,13 @@ body {
 .vk-kicker {
   font-family: var(--ifm-font-family-monospace);
   letter-spacing: 0.02em;
-  color: var(--vk-muted);
+  color: var(--ifm-color-content-secondary);
   font-size: 13px;
   margin: 0 0 10px;
 }
 
 .vk-sub {
-  color: var(--vk-muted);
+  color: var(--ifm-color-content-secondary);
   max-width: 75ch;
 }
 
@@ -121,13 +125,13 @@ body {
 }
 
 .vk-callout {
-  border-left: 3px solid rgba(110,231,255,0.55);
+  border-left: 3px solid var(--vk-antique-gold);
   padding: 10px 12px;
   border-radius: 12px;
   background: var(--vk-panel2);
-  color: var(--vk-muted);
+  color: var(--ifm-color-content-secondary);
   margin-top: 10px;
 }
 
-.vk-callout.warn { border-left-color: rgba(251,191,36,0.75); }
-.vk-callout.good { border-left-color: rgba(110,231,183,0.75); }
+.vk-callout.warn { border-left-color: var(--vk-copper); }
+.vk-callout.good { border-left-color: var(--vk-forest); }

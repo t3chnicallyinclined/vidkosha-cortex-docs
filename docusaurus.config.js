@@ -46,6 +46,20 @@ const config = {
     ],
   ],
 
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        redirects: [
+          { from: '/docs/wal-first', to: '/docs/thinking-fabric-wal#wal-first-operator-checklist' },
+          { from: '/docs/nats-operator-auth', to: '/docs/operator-kit#4-secure-the-fabric-nats-nkeys' },
+          { from: '/docs/project-context', to: '/docs/vidkosha-cortex' },
+          { from: '/docs/training-lane', to: '/docs/roadmap' },
+        ],
+      },
+    ],
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({

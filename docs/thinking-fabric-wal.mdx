@@ -11,11 +11,49 @@ title: Thinking Fabric v2 (NATS WAL)
 
 Plain English: the **WAL (write-ahead log)** is an append-only “what happened” stream that anyone can replay.
 
-The name “Vidkosha” is inspired by Vedic/Sanskrit framing around knowledge and memory; in practice, the system stays grounded in modern event-driven architecture.
+The name “Vidkosha” is a mash-up of two Sanskrit terms:
 
-This page describes the **event fabric contract**: how we name lanes (subjects), what an event envelope looks like, and how operators turn streams into reliable work.
+- **Vidyā**: knowledge, learning, cultivated understanding
+- **Kośa**: a treasury/storehouse (and, in some Vedānta contexts, a “sheath” or layer)
+
+In practice, the system stays grounded in modern event-driven architecture.
+
+This page describes the **event fabric contract**: how we name **NATS subjects** (and subject families), what an event envelope looks like, and how operators turn **streams + consumers + services** into reliable work.
 
 Treat this as the “network interface” that keeps the system scalable and auditable.
+
+## Thinking layers (observability)
+
+Beyond the event envelope, Vidkosha Cortex supports an optional **thinking-metadata layer**: small, structured tags that make cognition *observable* in the fabric.
+
+This is not “layers” as in CQRS planes (write/read/execution) or retention tiers. This is **observability into reasoning**: what kind of cognition a trace represents, what it touched, and how it should be evaluated.
+
+In the current posture, these show up as **English-first metadata keys** on selected memories/traces (and later as first-class events on the fabric):
+
+- `mind_layer`: what part of cognition this trace belongs to
+- `memory_type`: what kind of memory/work unit it is (e.g., memory vs tendency vs cause vs selfhood)
+- `reasoning_mode_label`: what reasoning posture produced it (e.g., analytic vs recall vs synthesis)
+- `thinking_pipelines`: which thinking pipeline(s) produced/updated it (for reproducibility)
+
+### Vedic ↔ English mapping (Antaḥkaraṇa)
+
+Historically, Vedic and Yogic traditions describe an inner instrument (Sanskrit: **antaḥkaraṇa**) as differentiated “functions” of mind. We use that vocabulary as a *mapping layer*—but we write **English-first tags** so operators and engineers can work in plain language.
+
+| English tag (`mind_layer`) | Vedic alias | Operational meaning (what you can observe) |
+| --- | --- | --- |
+| `mind` | **manas** | Attention + intake: stimulus, salience, “what’s in view,” early filtering |
+| `intellect` | **buddhi** | Decisions + routing: judgments, tradeoffs, rationale, “why we chose this agent/path” |
+| `storehouse` | **chitta** | Memory surface: recall/retrieval context, durable notes, associations that make answers grounded |
+| `ego` | **ahaṃkāra** | Self/identity: self-model snapshots, tendencies, boundaries, persistent preferences |
+
+### Why this is a superpower (for operators and stakeholders)
+
+Most AI systems treat “thinking” as opaque. We make it legible.
+
+- **Observability into cognition:** dashboards and audits can slice traces by `mind_layer` and `reasoning_mode_label` to see *how* the system is thinking, not just whether it produced an answer.
+- **Better tuning and evals:** fine-tuning and regression tests can target specific failure modes (e.g., Buddhi/routing mistakes vs Chitta/recall gaps) instead of mixing everything into one bucket.
+- **Safer iteration:** you can roll out a new pipeline, tag it in `thinking_pipelines`, and compare before/after behavior with replayable history.
+- **Measurable work:** operators can price and improve discrete cognition-shaped work units (routing, recall, synthesis) with clear metrics.
 
 ## Core idea
 
@@ -27,15 +65,31 @@ The network scales when:
 
 That’s the same structural pattern behind large streaming platforms and realtime multiplayer systems: **append once, fan out many times**.
 
-## Subject taxonomy (how lanes shard)
+## WAL-first operator checklist
+
+If you operate a **JetStream consumer** or an **operator service**, these are the invariants to keep the system rebuildable and auditable:
+
+- **Durable consumers:** your consumer must be able to restart, replay, and catch up.
+- **Idempotency:** replay will happen; tolerate duplicates and dedupe with stable work unit IDs.
+- **Schema/version pins:** envelopes evolve; keep explicit versions so you can backfill safely.
+- **Lag is a KPI:** consumer lag is capacity pressure; alert on it.
+- **Failure visibility:** if JetStream is down, ingestion should fail loudly (no silent drops).
+- **Retention boundary is economics:** after $T$, raw events disappear; if you need history, promote it into packs (or sponsor it).
+
+Failure modes to design for:
+
+- slow consumers → lag increases → scale consumers horizontally
+- reprocessing → deploy a fixed consumer → rewind → rebuild projection
+
+## Subject taxonomy (how work shards) {#subject-taxonomy-how-lanes-shard}
 
 At minimum you want subject names that make sharding and policy obvious:
 
 - **tenant / topic / source** boundaries for multi-tenant isolation
 - **time bucketing** for retention and replay windows
-- **lane separation** for “facts” vs “work” vs “settlement”
+- **subject-family separation** for “facts” vs “work” vs “settlement"
 
-Practical examples of lanes (conceptual):
+Practical examples of subject families (conceptual):
 
 - ingest facts (documents, media, metadata)
 - projection/update events
@@ -67,8 +121,8 @@ Why this matters:
 Operator Network v1 treats request/reply as the mission queue, but it still depends on WAL semantics:
 
 - the *facts* arrive through WAL subjects
-- the *work* is requested through mission lanes
-- the *accounting* is emitted through usage lanes
+- the *work* is requested through mission subjects (request/reply)
+- the *accounting* is emitted through usage subjects (events)
 
 The main reliability invariant is:
 
@@ -83,21 +137,11 @@ Related docs:
 
 The network works best when the planner can choose between:
 
-- **fresh lanes** (hot window indices derived from the last $T$ days), and
+- **fresh window indices** (hot-window projections derived from the last $T$ days),
 - **historical packs** (cold path retrieval with explicit pricing)
 
 Canonical behavior and economics:
 
 - [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
 
-## Extension point: training / accelerator lane
 
-Training fits the same contract if you make the work legible:
-
-- job request events reference dataset packs by manifest
-- operators advertise capacity tiers (latency/SLO/price)
-- results are posted as signed manifests (model artifact hashes + eval summaries)
-
-See:
-
-- [Training / accelerator lane](/docs/training-lane)
