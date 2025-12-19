@@ -128,7 +128,7 @@ This creates a strong incentive to:
 If you pay operators to store data, you need an auditable claim:
 
 - **Proof-of-custody:** periodic signed attestations over a pack inventory (e.g. Merkle root of `(pack_id, size, hash)` tuples).
-- **Serve-or-slash:** if an operator claims custody but fails to serve within the SLO window, apply penalties (stake slashing, removal from routing, loss of future assignments).
+- **Serve-or-penalize (future):** if an operator claims custody but fails to serve within the SLO window, apply penalties (e.g. removal from routing; stake slashing only when a staking regime exists).
 - **Content integrity:** retrieval responses include the pack manifest hash so verifiers can detect tampering.
 
 ### Replication and availability
@@ -227,7 +227,7 @@ Result: historical depth is available, but it’s explicitly metered.
 
 #### 6) Settlement and enforcement
 
-18. Retrieval events are logged into the marketplace metering subjects/stream.
+18. Retrieval events are logged into metering subjects/stream.
 19. Payout batcher allocates:
 	- storage retention revenue (time-based), and
 	- retrieval revenue (usage-based)

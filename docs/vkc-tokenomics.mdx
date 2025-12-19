@@ -1,0 +1,108 @@
+---
+slug: vkc-tokenomics
+title: VKC tokenomics (v1)
+---
+
+This is the first rendition of the simplified Vidkosha Cortex DAO economics and `VKC` token model.
+It is intentionally designed to be **operator-friendly**, **investor-legible**, and **low-complexity**.
+
+**Key simplifications (v1):**
+- **First-party operators only** (no open marketplace, no bidding, no third-party discovery).
+- **Stable-first accounting and payouts**: customers pay in fiat or stablecoins; operators are paid in **USDC**.
+- `VKC` is **fixed-supply** and used for **governance + staking**, not as the default payment currency.
+- **POL is optional** and only turns on once there is real revenue + a safe primary liquidity venue.
+
+> Older/internal docs may reference `NCC` or `NCRX`. The canonical token name going forward is **`VKC`**.
+> The legacy architecture blueprint remains in `contexts/dao_financial_architecture.md` (unchanged).
+
+## Goals
+- Make operator work **measurable and payable** via `usage_event → payout_batch`.
+- Keep end-user UX **SaaS simple** (USD pricing; fiat checkout; optional crypto checkout).
+- Build a credible **treasury + reserve policy** funded by real revenue.
+- Enable **Protocol-Owned Liquidity (POL)** later without turning tokenomics into the product.
+
+## Non-goals (v1)
+- No per-request escrow, disputes, evaluator courts, or open specialist marketplace.
+- No inflationary emissions schedule.
+- No requirement for end users to hold `VKC`.
+
+## Roles
+- **Customers**: pay for a ChatGPT-like app + agentic workflows, in fiat or stablecoins.
+- **Treasury (LLC/DAO-controlled)**: receives revenue, pays operator costs, maintains reserves, optionally deploys POL.
+- **Operators (first-party, v1)**: run inference/RAG/workflow services; emit usage events; receive USDC payouts.
+- **`VKC` holders**: govern slow-changing protocol parameters; stake to be eligible for operator privileges (v2+).
+
+## Canonical money flow (stable-first)
+**Unit of account:** USD (or USDC-equivalent).
+
+1. Customer pays **$X** (fiat) or **X USDC** (crypto checkout).
+2. Treasury books revenue in USD/USDC.
+3. Runtime emits `usage_event` records for measurable work units.
+4. At epoch close (weekly recommended), `usage_event`s aggregate into a `payout_batch`.
+5. Treasury pays first-party operators in **USDC** from the payout batch.
+
+Why this is the default:
+- Operators have real-world costs (GPUs/cloud) denominated in fiat/stables.
+- Stable payouts reduce forced token selling and keep the network reliable.
+
+## `VKC` design (fixed-supply governance + staking)
+### Purpose
+- **Governance**: vote on *slow-changing* parameters that matter for operators and treasury stewardship.
+- **Staking** (v2+): “skin in the game” for operator eligibility and higher-trust roles.
+
+### What `VKC` is *not* (v1)
+- Not the default customer payment token.
+- Not an emissions-driven rewards token.
+
+### Supply
+- **Fixed total supply** (exact number TBD).
+- No protocol minting after genesis.
+
+### Typical/simple allocation buckets (ranges; finalize later)
+- **Team + builders** (vested): 15–30%
+- **Treasury / ecosystem** (locked + governed): 25–50%
+- **Investors** (vested): 10–25%
+- **Operator/community programs** (vested/locked): 10–25%
+
+**Vesting best practices (typical):**
+- Team: 4y vest with 1y cliff.
+- Investors: 1–3y vest (depending on round), with lockups.
+- Treasury: timelocked + governed spend policy.
+
+## Governance scope (narrow by design)
+`VKC` governance should target parameters that operators can plan around and that can be audited:
+- **Model registry:** which base models/versions are allowed in production routing.
+- **Service definitions:** what counts as a billable unit per service.
+- **Treasury policy parameters:** reserve floor, payout epoch length, POL deploy caps.
+- **Operator eligibility rules (v2+):** stake thresholds, minimum hardware/SLO class.
+- **Security upgrades:** upgrades that change receipt/anchoring behavior (if enabled).
+
+**Not governed day-to-day:** incident response, abuse mitigation, hotfix rollouts.
+
+## Treasury policy (simple guardrails)
+In v1, implement a minimal `treasury_policy` (off-chain config + published snapshots):
+- **Reserve floor:** maintain N months runway in USDC before optional POL/buyback actions.
+- **Payout pool:** weekly budget derived from revenue and runway constraints.
+- **POL budget cap:** explicit ceiling (starts at 0; turns on only after stability).
+
+## POL (Protocol-Owned Liquidity)
+POL protects against “liquidity disappears overnight” dynamics by having the treasury **own LP positions**.
+
+**V1 posture:** POL is **off** (or extremely small) until:
+- consistent revenue exists,
+- a primary venue exists with real stable liquidity,
+- and treasury operations are secured (multisig, spend limits, reporting).
+
+## Optional value-capture (deferred)
+Once revenue is consistent and operations are mature, governance may enable one of:
+- **Buy and lock**: buy `VKC` and lock it (reduces float).
+- **Buy and distribute to stakers**: complex; do carefully.
+- **Buy and burn**: simplest mechanically; irreversible.
+
+In v1, default is **reserves + payouts + (optional) POL**, not buybacks.
+
+## Roadmap (economics)
+- **v1:** first-party operators + USDC payouts + published treasury policy snapshots; no marketplace; `VKC` spec finalized.
+- **v1.5:** hash-only checkpointing of `payout_batch` roots and policy snapshots (optional chain lane).
+- **v2:** introduce `VKC` staking gates for operator privileges; delegation optional; keep payouts stable-first.
+- **v3:** open operator set only when adversarial pressure justifies it; then consider slashing/dispute complexity.

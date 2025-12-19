@@ -24,7 +24,7 @@ JetStream is the **canonical event log**.
 Why it’s great for this use case:
 
 - **Replayable truth:** if you can replay the log, you can rebuild state, fix bugs, and prove what happened.
-- **Fanout at scale:** one published event can feed many independent consumers (indexers, pack builders, marketplace meters, monitoring).
+- **Fanout at scale:** one published event can feed many independent consumers (indexers, pack builders, metering/payout accounting, monitoring).
 - **Backpressure + durability:** slow consumers don’t break the writer; they lag and catch up.
 - **Operational clarity:** if the WAL is unhealthy, you *know* the system is unhealthy (no “silent success” where data vanishes).
 

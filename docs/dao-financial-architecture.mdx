@@ -13,6 +13,12 @@ The goal is to be sustainable and operable:
 
 Chain integration is **optional** and can be introduced later as a verification/settlement layer without making it a dependency for the core business.
 
+## VKC tokenomics (v1)
+
+The simplified, go-forward token model is documented here:
+
+- [VKC tokenomics (v1)](/docs/vkc-tokenomics)
+
 ## What the DAO governs
 
 At a high level, the DAO governs **service economics and protocol policy**, not day-to-day operations.
@@ -86,9 +92,9 @@ If the protocol takes a fee, a treasury is useful for:
 
 Exact fee splits and treasury policy are governance choices; this doc focuses on the machinery that makes those choices enforceable.
 
-## Anti-fraud and dispute handling (why this won’t collapse)
+## Anti-fraud basics (v1)
 
-Any metered network needs a credible story for abuse:
+Any metered network needs a credible story for abuse (without jumping straight to escrow/dispute games):
 
 - **Idempotency + correlation IDs:** prevent double-billing.
 - **Version pins:** “what ran” is explicit and reproducible.
@@ -110,6 +116,6 @@ Practical governance mechanisms can include proposal cycles, staged rollouts, an
 
 Related:
 
-- [Marketplace + payouts](/docs/operator-marketplace)
+- [Payouts + accounting](/docs/operator-marketplace)
 - [Operator Network v1](/docs/operator-network-v1)
 - [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)

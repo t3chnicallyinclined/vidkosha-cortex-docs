@@ -1,51 +1,40 @@
 ---
 slug: operator-marketplace
-title: Marketplace + payouts
+title: Payouts + accounting (v1)
 ---
 
-The marketplace exists to make operator work **legible and rewardable**: usage events get aggregated into payout batches.
+This page describes the **payout accounting loop**: usage events get aggregated into payout batches and settled.
 
 If the network can’t measure work, it can’t pay for work — and you don’t get a real operator ecosystem.
 
-## What is actually being traded
+## v1 simplification
 
-The “marketplace” is not a UI first. It’s a set of protocol surfaces:
+In v1, Vidkosha Cortex runs **first-party operators only**.
+We intentionally defer open-marketplace mechanics (third-party discovery, bidding, escrow/disputes) until the network has real volume and adversarial pressure.
 
-- **capability advertisement** (what an operator offers)
-- **routing** (how missions pick providers)
-- **usage events** (what happened, with pricing + SLO metadata)
-- **payout batching** (how rewards are aggregated and settled)
+Stable-first posture:
+- Customers pay in fiat or stablecoins (unit-of-account is USD/USDC).
+- Operators are paid in **USDC** on an epoch schedule (weekly recommended).
 
-This is how you get a system that can scale to millions of requests: you don’t manually coordinate providers; you route by subject + service capability.
+Canonical tokenomics: [VKC tokenomics (v1)](/docs/vkc-tokenomics).
 
-## Discovery vs. routing (Helix search vs NATS wildcards)
+## Accounting primitives
 
-It’s tempting to think “marketplace search” is just NATS subject wildcards (`topic.*`, `topic.>`). In practice:
+Even without an open marketplace, the network needs a boring, auditable accounting spine:
 
-- **NATS subjects + wildcards** are best for **routing and ops** (subscribing to a known subject family/service, sharding, and enforcing permissions).
-- **Marketplace discovery/search** should be backed by an **index/catalog** (Helix), so users can search topics/providers by metadata (coverage window, price, SLO tier, replication) without already knowing subject naming conventions.
+- `usage_event`: append-only record of billable work (who did what, units, SLO tier, price quote vs actual).
+- `payout_batch`: epoch aggregation of usage events into “who gets paid how much”.
+- `treasury_policy`: guardrails for reserves, payout pool size, and optional POL budget.
 
-Operationally, wildcards can still help operators monitor what they’re responsible for; the user-facing marketplace should feel like a searchable catalog.
+Economics and token model are centralized in: [VKC tokenomics (v1)](/docs/vkc-tokenomics).
 
-## Latency is the product (and why operator rewards make sense)
+## Payout lifecycle (weekly)
 
-Many “decentralized storage/RAG” approaches can have high tail latency (IPFS-style peer discovery, cold content, variable pinning/gateway bottlenecks). That makes them hard to use for interactive AI systems.
-
-Vidkosha’s marketplace flips the premise:
-
-- operators are paid to run **reliable, low-latency services** (serving packs, running tools, generating embeddings, inference, etc.)
-- routing selects providers by **SLO + price**, so the network behaves like a real service fabric
-- usage events make the work measurable, so rewards correspond to actual delivered utility
-
-This also makes ops sane:
-
-- operators can put Grafana-style dashboards over service latency, error rates, and consumer lag
-- routing/payouts become debuggable (“what got selected, why, and what did it cost?”)
-
-And it creates a natural product ladder:
-
-- baseline hot freshness
-- premium retention tiers (30d/90d/1y) where operators charge more for deeper memory and stronger SLOs
+1. Request executes as one or more missions.
+2. Each mission emits a `usage_event`.
+3. At epoch close, `usage_event`s aggregate into a `payout_batch`.
+4. Treasury settles the batch in **USDC** (v1 default).
+5. Optional: publish a hash-only checkpoint of the batch root (later).
 
 ## What gets metered
 
@@ -68,6 +57,10 @@ Metering needs to be boring and machine-verifiable:
 - bytes/records/seconds (depending on service)
 - SLO tier (latency/availability)
 - price quote vs actual usage
+
+## Deferred: open marketplace mechanics
+
+If/when third-party operators are enabled, additional surfaces can be added (catalog discovery, bidding, escrow/disputes, and stronger enforcement). v1 keeps these out of scope to reduce complexity.
 
 ## Storage operator incentive: 7-day WAL + paid archives
 

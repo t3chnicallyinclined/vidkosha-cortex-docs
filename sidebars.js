@@ -6,6 +6,8 @@ const sidebars = {
     'architecture-overview',
     'thinking-fabric-wal',
     'packs',
+    'dao-financial-architecture',
+    'vkc-tokenomics',
     'operator-network-v1',
     'operator-marketplace',
     'operator-kit',

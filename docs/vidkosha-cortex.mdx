@@ -11,8 +11,9 @@ If you’re new here:
 - [DRAG tour (start here)](/docs/drag-tour)
 - [Canonical DRAG spec (deep dive)](/docs/canonical-drag)
 - [Operator Network v1 (how it runs)](/docs/operator-network-v1)
-- [Marketplace + payouts](/docs/operator-marketplace)
+- [Payouts + accounting (v1)](/docs/operator-marketplace)
 - [DAO + value flow](/docs/dao-financial-architecture)
+- [VKC tokenomics (v1)](/docs/vkc-tokenomics)
 
 ## What DRAG enables
 
@@ -149,7 +150,7 @@ Two practical consequences:
 
 - **Lagging topics become visible demand:** operators can see which services are behind and add capacity to earn.
 - **Semantic demand signals (aggregate):** operators can see what’s being asked for as topic/cluster aggregates (not raw prompts), so they can build and deploy the right endpoints.
-- **Discovery stays sane:** NATS wildcards help routing/ops, but the marketplace can be indexed (Helix) so users search a catalog by topic/coverage/SLO/price.
+- **Discovery stays sane (future):** NATS wildcards help routing/ops; catalog indexing can be added later if/when an open operator set is enabled.
 
 This is the practical difference vs opaque AI stacks: you can run Grafana dashboards, see exactly where time/cost is spent, and tune routing, caching, pack replication, and recipe/version rollouts with confidence.
 
@@ -180,7 +181,7 @@ This is what makes operator rewards sustainable: there are clear, valuable servi
 Design goal: those services are accessible via **stable, metered APIs** (retrieval, embeddings, tools/MCP steps, and inference endpoints), so operators can build revenue-generating products on top of the fabric instead of relying on one-off consulting.
 
 - [Operator Network v1](/docs/operator-network-v1)
-- [Marketplace + payouts](/docs/operator-marketplace)
+- [Payouts + accounting](/docs/operator-marketplace)
 
 
 ## One more superpower: time-travel RAG
