@@ -24,7 +24,7 @@ JetStream is the **canonical event log**.
 Why it’s great for this use case:
 
 - **Replayable truth:** if you can replay the log, you can rebuild state, fix bugs, and prove what happened.
-- **Fanout at scale:** one published event can feed many independent consumers (indexers, pack builders, metering/payout accounting, monitoring).
+- **Fanout at scale:** one published event can feed many independent consumers (indexers, snapshot builders, metering/payout accounting, monitoring).
 - **Backpressure + durability:** slow consumers don’t break the writer; they lag and catch up.
 - **Operational clarity:** if the WAL is unhealthy, you *know* the system is unhealthy (no “silent success” where data vanishes).
 
@@ -65,7 +65,7 @@ Operators are how the fabric turns intent into results:
 
 - ingest and normalize sources
 - build embeddings and indices
-- serve retrieval packs
+- serve retrieval (hot corpora + cold snapshots)
 - run MCP tools (transforms, stitching, rendering)
 - optional inference providers
 
@@ -73,7 +73,7 @@ Why it’s great for this use case:
 
 - **Clear unit economics:** work shows up as metered events (usage) that can be paid.
 - **Separation of concerns:** execution capacity scales independently from storage or query.
-- **Composable pipelines:** you can chain operators (ingest → pack → retrieve → tool steps) while keeping each step auditable.
+- **Composable pipelines:** you can chain operators (ingest → corpus/stream → retrieve → tool steps) while keeping each step auditable.
 
 ## End-to-end flow (what actually happens)
 
@@ -82,10 +82,10 @@ At a high level:
 1. An operator ingests data and publishes canonical events into JetStream.
 2. Projection operators consume events and update Helix.
 3. When a user asks a question, a planner runs fast hot retrieval first.
-4. If older context is needed, the planner fetches archival packs (paid retrieval), verifies manifests, and continues.
+4. If older context is needed, the planner fetches archival snapshots (paid retrieval), verifies manifests, and continues.
 5. Optional MCP tools run deterministic steps (e.g. render a report, transform data), producing more metered work.
 
-The key operational principle: **everything important is either in the WAL, derived from it, or referenced by an integrity-checked pack.**
+The key operational principle: **everything important is either in the WAL, derived from it, or referenced by an integrity-checked snapshot.**
 
 ## Freshness window + archives (bounded hot, paid cold)
 
@@ -97,7 +97,7 @@ JetStream retention (example: 7d) is not only an ops setting — it’s the boun
 The canonical economics + flow is documented here:
 
 - [Canonical: 7-day WAL freshness + archival market](/docs/canonical-drag)
-- [What is a pack?](/docs/packs)
+- [Corpora, streams, and snapshots](/docs/packs)
 
 ## Layered retention tiers (7d / 30d / 90d / …)
 
@@ -112,7 +112,7 @@ Why this is valuable:
 - operators can specialize (cheap hot path vs premium historical custody)
 - the network can let the community/DAO set defaults and subsidies instead of baking in infinite retention
 
-In practice, tiers can be expressed as retention policies over packs: window length, replication factor, and max-latency tier.
+In practice, tiers can be expressed as retention policies over snapshots: window length, replication factor, and max-latency tier.
 
 ## Observability-first operations
 
@@ -123,17 +123,17 @@ This architecture is unusually observable because “truth” and “work” are
 - **Work health:** per-service request latency (p50/p95/p99), error rates, and SLO compliance.
 - **Economics:** usage events tie operator performance to payouts (what earned, where, and why).
 
-Operators can run standard tooling (Prometheus/Grafana-style dashboards) to see where the AI system is slow, expensive, or stale — and then tune routing policies, pack replication, caching, and recipe/version rollouts.
+Operators can run standard tooling (Prometheus/Grafana-style dashboards) to see where the AI system is slow, expensive, or stale — and then tune routing policies, snapshot replication, caching, and recipe/version rollouts.
 
 ## Time-travel RAG: replay old history and rehydrate a past snapshot
 
-WAL-first + archival packs enables something most RAG stacks can’t do cleanly: **spin up a full “archived RAG” for a past time range and serve it like it’s live**.
+WAL-first + archival snapshots enables something most RAG stacks can’t do cleanly: **spin up a full “archived RAG” for a past time range and serve it like it’s live**.
 
 Mechanically:
 
 - JetStream gives you the **append-only facts** (for the hot window).
-- Archival packs give you **sealed historical context** (documents + embeddings + manifests).
-- Helix projections can be **rebuilt** from WAL + packs into a queryable snapshot.
+- Archival snapshots give you **sealed historical context** (documents + embeddings + manifests).
+- Helix projections can be **rebuilt** from WAL + snapshots into a queryable snapshot.
 
 That means you can stand up:
 
@@ -144,7 +144,7 @@ That means you can stand up:
 High-value use cases:
 
 - **Forensics & incident response:** replay “what did we know when we decided X?” with the exact historical context.
-- **Compliance & audits:** reproduce retrieval results for a regulator with integrity-checked packs.
+- **Compliance & audits:** reproduce retrieval results for a regulator with integrity-checked snapshots.
 - **Backtesting & research:** run strategies/analyses against historical slices with pinned embedding recipes.
 - **Model evaluation regression:** test new models against old corpora with reproducible snapshots.
 - **Enterprise change control:** compare “RAG before policy/doc updates” vs “after” and quantify drift.
@@ -163,10 +163,9 @@ Many decentralized RAG/storage stacks lean on content-addressed/DHT-style retrie
 Vidkosha Cortex is designed to feel like a low-latency service because:
 
 - **Hot window is local and indexed:** fresh queries hit Helix projections derived from the WAL.
-- **Operators provide real services with SLOs:** retrieval, pack serving, transforms, embeddings, inference, and eventually training.
-- **Operators provide real services with SLOs:** retrieval, pack serving, transforms, embeddings, inference.
+- **Operators provide real services with SLOs:** retrieval, corpus/snapshot serving, transforms, embeddings, inference, and eventually training.
 - **Routing is policy-driven:** choose providers by price + SLO + geo/egress, not “who happens to have the CID”.
-- **Cold history is explicit and paid:** archives aren’t a hope-and-pray DHT fetch; they’re a market of storage operators who earn revenue by serving packs reliably.
+- **Cold history is explicit and paid:** archives aren’t a hope-and-pray DHT fetch; they’re a market of storage operators who earn revenue by serving snapshots reliably.
 
 This is the core operator thesis: operators aren’t “just hosting blobs” — they run valuable, metered services that directly create network utility and therefore justify rewards.
 

@@ -42,13 +42,13 @@ Operator Network v1 keeps the interactive path fast by treating retrieval as a *
 - routing chooses operators deliberately (price/SLO/geo)
 - responses come from providers optimized for serving, not opportunistic peer discovery
 
-The consequence is economic: operators get paid because they provide **valuable low-latency services** (pack serving, transforms, tool calls, embeddings/inference), not because they merely exist on a peer list.
+The consequence is economic: operators get paid because they provide **valuable low-latency services** (snapshot serving, transforms, tool calls, embeddings/inference), not because they merely exist on a peer list.
 
 ## Mission flow (end-to-end)
 
 Typical request path:
 
-1. A planner decides what needs to be done (retrieve packs, run tools, embed, etc.).
+1. A planner decides what needs to be done (retrieve snapshots, run tools, embed, etc.).
 2. It routes a mission request to the right service.
 3. Operators compete on price/SLO or are selected by routing policy.
 4. Operators execute the work and return results.
@@ -60,7 +60,7 @@ In a WAL-first fabric, **consumer lag** (backlog) is a first-class signal:
 
 - **Health:** lag spikes usually mean a consumer is slow or unhealthy.
 - **Capacity:** sustained lag means the consumer group/service is under-provisioned.
-- **Market pressure:** “topic X is lagging” implies demand > supply for that work (projection/pack building/retrieval), which can justify higher pricing and attracts more operators.
+- **Market pressure:** “topic X is lagging” implies demand > supply for that work (projection/snapshot building/retrieval), which can justify higher pricing and attracts more operators.
 
 This is where observability turns into economics: operators can see which services/topics are falling behind and step in with capacity to earn.
 
@@ -84,7 +84,7 @@ This is how contributors at different levels collaborate without coordination:
 
 - **Data builders/curators** publish fresh streams into the 7-day WAL window (cheap to experiment; fast feedback).
 - **Operators** watch the demand/lag signals and move compute to where the market is.
-- **Archival operators** extend the hot window via packs when customers prove they’ll pay for longer memory.
+- **Archival operators** extend the hot window via snapshots when customers prove they’ll pay for longer memory.
 
 ## Where agents + MCP fit
 
@@ -96,7 +96,7 @@ This is how contributors at different levels collaborate without coordination:
 Operator Network v1 works well with a two-tier memory model:
 
 - JetStream WAL retains the last $T$ days (e.g. 7d) as the hot/fresh window.
-- Older data becomes “archival packs” stored by storage operators and retrieved on-demand.
+- Older data becomes “archival snapshots” stored by storage operators and retrieved on-demand.
 
 Detailed design:
 

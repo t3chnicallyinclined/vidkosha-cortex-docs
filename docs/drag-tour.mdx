@@ -14,25 +14,25 @@ DRAG is a network that keeps knowledge fresh and searchable — a “living libr
 
 ## New use case: agents + inference endpoints = operator-deployed workflows
 
-The point of these examples isn’t “YouTube specifically.” It’s that operators can build and deploy **practical inference + tool workflows** (as APIs) on top of DRAG’s freshness + packs + routing.
+The point of these examples isn’t “YouTube specifically.” It’s that operators can build and deploy **practical inference + tool workflows** (as APIs) on top of DRAG’s freshness + corpora/streams + routing.
 
 A reliable end-to-end pipeline an operator can host and sell:
 
-- Prompt → **Researcher agent** gathers sources and fresh context from packs
+- Prompt → **Researcher agent** gathers sources and fresh context from corpora
 - Research → **Script writer** produces outline + narration
 - Script → **Voice agent** generates voiceover
 - Script → **Video generator** creates 10–30s clips
 - **Stitching** assembles a cohesive video with captions/metadata
 
-These become **metered endpoints** (e.g. “generate highlights”, “generate chapters”, “produce clip plan”, “produce metadata pack”) that customers call via a stable API.
+These become **metered endpoints** (e.g. “generate highlights”, “generate chapters”, “produce clip plan”, “produce metadata bundle”) that customers call via a stable API.
 
-## Example (content): YouTube/podcast semantic archive packs
+## Example (content): YouTube/podcast semantic archive snapshots
 
 Continuously ingest transcripts and metadata for a curated set of channels/topics, embed them, and serve semantic search with grounded quotes.
 
 ## Example (content): full SEO package automation for long podcasts
 
-Send a long-form video (e.g., a 3-hour podcast) and automatically generate a complete “YouTube-ready” SEO pack:
+Send a long-form video (e.g., a 3-hour podcast) and automatically generate a complete “YouTube-ready” SEO bundle:
 
 - **SEO title** options and positioning variants
 - **Rich description** (chapters/timestamps, links, CTAs)
@@ -43,18 +43,18 @@ Send a long-form video (e.g., a 3-hour podcast) and automatically generate a com
 
 This is a natural multi-agent pipeline: transcript → topic map → highlights → copywriting → packaging.
 
-If you don’t care about content, swap in a different vertical: compliance review, support-ticket triage, research brief generation, incident postmortems, market monitoring, and more. The *shape* stays the same: ingest → pack → retrieve → infer/tool → serve as a paid API.
+If you don’t care about content, swap in a different vertical: compliance review, support-ticket triage, research brief generation, incident postmortems, market monitoring, and more. The *shape* stays the same: ingest → corpus/stream → retrieve → infer/tool → serve as a paid API.
 
 ## New use case: freshness window + paid archival retrieval
 
 Use JetStream retention (e.g. 7 days) as the default “freshness window”: everything older expires unless someone pays to keep it.
 
 - Hot path: fast, cheap retrieval across the last $T$ days
-- Cold path: archived packs stored by storage operators and served on-demand for a fee
+- Cold path: archived snapshots stored by storage operators and served on-demand for a fee
 
-If “packs” isn’t intuitive yet, start here:
+If you want the terminology first, start here:
 
-- [Packs (archival packs)](/docs/packs)
+- [Corpora, streams, and snapshots](/docs/packs)
 
 See the detailed spec section:
 

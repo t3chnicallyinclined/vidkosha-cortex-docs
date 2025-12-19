@@ -34,7 +34,7 @@ Separate from DRAG, Vidkosha Cortex is also a decentralized **execution** fabric
 Illustrative applications:
 
 - **Automated content pipelines:** research → script → voice → clips → stitched output (10–30s segments).
-- **Semantic media archives:** transcribe + embed long-form media and serve grounded search as packs.
+- **Semantic media archives:** transcribe + embed long-form media and serve grounded search as corpora.
 - **SEO packaging:** upload long content and generate a packaging bundle (titles, chapters, descriptions, keywords, clip plan, thumbnail concepts).
 
 ## Why Vidkosha Cortex is different
@@ -46,7 +46,7 @@ That tends to produce high tail latency because you pay for discovery + multi-ho
 Vidkosha Cortex is a **service fabric**:
 
 - **Fast hot path:** indexed retrieval over a bounded freshness window.
-- **Explicit cold path:** paid archival packs served by storage operators with clear expectations.
+- **Explicit cold path:** paid archival snapshots served by storage operators with clear expectations.
 - **Real operator businesses:** operators aren’t rewarded for “having a CID” — they earn because they deliver low-latency services that the network can meter and settle.
 
 ## The “Thinking Fabric” idea (and where the name comes from)
@@ -61,7 +61,7 @@ The name “Vidkosha” is a mash-up of two Sanskrit terms:
 In engineering terms, the metaphor maps to a contract:
 
 - **Cultivation:** operators continuously ingest and refine into indexed projections.
-- **Preservation:** append-only history (WAL + packs) makes state replayable.
+- **Preservation:** append-only history (WAL + snapshots) makes state replayable.
 - **Transmission:** manifests + commitments let others verify provenance.
 
 The goal is calm, legible systems: clarity, provenance, memory, and iteration — implemented with modern distributed-systems primitives.
@@ -75,7 +75,7 @@ If you want the technical contract behind the “fabric” metaphor:
 
 - **Write plane (truth):** NATS JetStream as the WAL (durable, replayable).
 - **Read plane (speed):** Helix as the rebuildable query projection.
-- **Execution plane (work):** operators run ingestion, indexing, pack serving, tools/MCP steps, embeddings/inference, and later training.
+- **Execution plane (work):** operators run ingestion, indexing, corpus/snapshot serving, tools/MCP steps, embeddings/inference, and later training.
 
 Plain English: **WAL = “receipt tape”**. Everything that happens gets appended to a log first, and the rest of the system is built by replaying that log.
 
@@ -83,7 +83,7 @@ Why this scales like Netflix/large streaming systems:
 
 - append facts once → fan out to many consumers
 - scale by adding consumers/operators, not by rewriting the producer
-- rebuild anything by replaying the log + packs
+- rebuild anything by replaying the log + snapshots
 
 Deep dives:
 
@@ -152,7 +152,7 @@ Two practical consequences:
 - **Semantic demand signals (aggregate):** operators can see what’s being asked for as topic/cluster aggregates (not raw prompts), so they can build and deploy the right endpoints.
 - **Discovery stays sane (future):** NATS wildcards help routing/ops; catalog indexing can be added later if/when an open operator set is enabled.
 
-This is the practical difference vs opaque AI stacks: you can run Grafana dashboards, see exactly where time/cost is spent, and tune routing, caching, pack replication, and recipe/version rollouts with confidence.
+This is the practical difference vs opaque AI stacks: you can run Grafana dashboards, see exactly where time/cost is spent, and tune routing, caching, snapshot replication, and recipe/version rollouts with confidence.
 
 ## Layered retention tiers (community-defined storage tiers)
 
@@ -172,7 +172,7 @@ Canonical economics:
 
 The network’s moat is not just “retrieval exists” — it’s that workflows are **metered services**:
 
-- pack serving (hot/cold)
+- snapshot serving (hot/cold)
 - transforms/rendering via MCP tools
 - embeddings and inference (optional services)
 
@@ -186,7 +186,7 @@ Design goal: those services are accessible via **stable, metered APIs** (retriev
 
 ## One more superpower: time-travel RAG
 
-Because history is replayable (WAL) and sealable (archival packs), you can spin up a “RAG as-of date $D$” and serve it for audits, backtests, and incident forensics.
+Because history is replayable (WAL) and sealable (archival snapshots), you can spin up a “RAG as-of date $D$” and serve it for audits, backtests, and incident forensics.
 
 - [Time-travel RAG (architecture)](/docs/architecture-overview)
 

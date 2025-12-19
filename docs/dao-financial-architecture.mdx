@@ -25,7 +25,7 @@ At a high level, the DAO governs **service economics and protocol policy**, not 
 
 Examples of governable parameters:
 
-- **Service definitions:** what counts as a billable work unit per service (pack serve, transform/tool step, embeddings, inference).
+- **Service definitions:** what counts as a billable work unit per service (snapshot serve, transform/tool step, embeddings, inference).
 - **SLO tiers:** how latency/availability tiers are defined and priced.
 - **Retention policy:** baseline hot window (e.g. 7d) and the allowed premium retention tiers (30d/90d/1y), including default replication targets.
 - **Fee policy:** what portion (if any) goes to a protocol treasury vs direct operator payouts.
@@ -35,7 +35,7 @@ Examples of governable parameters:
 
 The simplest mental model:
 
-1. A user calls a metered API (retrieval, pack expansion, tool workflow, embeddings/inference).
+1. A user calls a metered API (retrieval, snapshot expansion, tool workflow, embeddings/inference).
 2. The request becomes one or more **missions** routed to operators.
 3. Operators execute work and emit **usage events**.
 4. Usage events are aggregated into **payout batches**.
@@ -67,7 +67,7 @@ Pricing is service-specific, but the pattern is consistent:
 This makes the product ladder legible:
 
 - Fast freshness window (baseline)
-- Paid archival packs (history)
+- Paid archival snapshots (history)
 - Premium retention tiers (30d/90d/1y)
 - Higher-SLO routing (enterprise)
 
@@ -75,7 +75,7 @@ This makes the product ladder legible:
 
 Operators don’t get paid for “existing” — they get paid for delivering metered services:
 
-- **Pack serving:** hot packs and paid cold retrieval (archival packs).
+- **Snapshot serving:** hot window indices + paid cold retrieval (archival snapshots).
 - **Transforms + workflows:** deterministic tool/MCP steps (rendering, parsing, summarizing, stitching, normalization).
 - **Embeddings + inference:** optional services for vector generation and model execution.
 
@@ -98,7 +98,7 @@ Any metered network needs a credible story for abuse (without jumping straight t
 
 - **Idempotency + correlation IDs:** prevent double-billing.
 - **Version pins:** “what ran” is explicit and reproducible.
-- **Integrity manifests:** packs and artifacts are referenced by hashes/manifests.
+- **Integrity manifests:** snapshots and artifacts are referenced by hashes/manifests.
 - **Audit windows:** allow challenges before batches are finalized.
 - **Rate limits and allowlists where needed:** especially for expensive services.
 

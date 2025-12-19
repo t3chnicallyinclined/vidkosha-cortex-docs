@@ -74,7 +74,7 @@ If you operate a **JetStream consumer** or an **operator service**, these are th
 - **Schema/version pins:** envelopes evolve; keep explicit versions so you can backfill safely.
 - **Lag is a KPI:** consumer lag is capacity pressure; alert on it.
 - **Failure visibility:** if JetStream is down, ingestion should fail loudly (no silent drops).
-- **Retention boundary is economics:** after $T$, raw events disappear; if you need history, promote it into packs (or sponsor it).
+- **Retention boundary is economics:** after $T$, raw events disappear; if you need history, seal it into snapshots (or sponsor it).
 
 Failure modes to design for:
 
@@ -96,7 +96,7 @@ Practical examples of subject families (conceptual):
 - operator mission requests
 - usage/metering events
 - payout/settlement events
-- archival pack manifests and custody proofs
+- archival snapshot manifests and custody proofs
 
 The exact strings can evolve, but the design goal stays the same: **subjects encode routing and safety boundaries**.
 
@@ -114,7 +114,7 @@ Why this matters:
 
 - projections can be rebuilt deterministically,
 - metering can be derived from canonical work units,
-- archival packs can be integrity-checked and priced.
+- archival snapshots can be integrity-checked and priced.
 
 ## Operator workflow: from streams to missions
 
@@ -138,7 +138,7 @@ Related docs:
 The network works best when the planner can choose between:
 
 - **fresh window indices** (hot-window projections derived from the last $T$ days),
-- **historical packs** (cold path retrieval with explicit pricing)
+- **historical snapshots** (cold path retrieval with explicit pricing)
 
 Canonical behavior and economics:
 

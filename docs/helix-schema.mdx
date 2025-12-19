@@ -5,7 +5,7 @@ title: Helix schema
 
 HelixDB is the **fast query layer**. JetStream (the WAL) is the source of truth.
 
-Think of HelixDB as “everything you want to answer quickly”, derived from the WAL and/or archival packs.
+Think of HelixDB as “everything you want to answer quickly”, derived from the WAL and/or archival snapshots.
 
 ## Why HelixDB is great for this use case
 
@@ -50,11 +50,11 @@ Rebuildability is not philosophical — it’s what lets you ship:
 
 The network becomes legible when Helix can answer questions like:
 
-- Which packs cover a topic/time range?
-- Which operators claim custody of which pack manifests?
+- Which snapshots cover a topic/time range?
+- Which operators claim custody of which snapshot manifests?
 - Which operator served which retrieval requests?
 - What did a payout batch include?
 
-Some of these already exist in the legacy docs; some are planned. The guiding rule is consistent: **Helix indexes what the WAL and pack manifests make true.**
+Some of these already exist in the legacy docs; some are planned. The guiding rule is consistent: **Helix indexes what the WAL and snapshot manifests make true.**
 
 

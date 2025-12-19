@@ -10,9 +10,9 @@ This is not a promise of exact dates. It’s a sequencing plan that prioritizes:
 ## Now
 
 - **WAL + projection loop robustness:** replayable streams, idempotent projections, visible lag, and “rebuild from log” discipline.
-- **Archive market is real:** pack manifests and integrity checks, clear hot vs cold retrieval, paid archival retrieval metering.
+- **Archive market is real:** snapshot manifests and integrity checks, clear hot vs cold retrieval, paid archival retrieval metering.
 - **Operator work is legible:** usage events → aggregation → payout batches.
-- **Operator service templates:** starter services that are easy to deploy and sell (retrieval, pack serving, tools/MCP workflows; optional embeddings/inference).
+- **Operator service templates:** starter services that are easy to deploy and sell (retrieval, snapshot serving, tools/MCP workflows; optional embeddings/inference).
 - **Observability-first:** service latency + error budgets + consumer lag dashboards that connect directly to routing and payouts.
 - **Chain integration is gated during buildout:** ship operator revenue first, then flip on CKB dev testnet and harden anchoring/settlement.
 
@@ -26,7 +26,7 @@ Success looks like:
 
 - **Better query planning:** hot-first retrieval, priced cold expansion, integrity verification, predictable “what will this cost?” behavior.
 - **Stronger routing:** SLO tiers, geo/egress-aware selection, fairness policies, and explicit degradation paths.
-- **More service products:** pack-backed vertical offerings (media packs, compliance packs, market monitoring, incident intelligence).
+- **More service products:** corpus-backed vertical offerings (media corpora, compliance corpora, market monitoring, incident intelligence).
 - **Payout accounting hardening:** clearer batch finalization rules, dashboards, and optional hash-only checkpointing.
 
 Success looks like:
@@ -38,7 +38,7 @@ Success looks like:
 
 Later (only when justified by scale/adversarial pressure):
 
-- optional on-chain commitments for payout batch roots and/or pack manifests
+- optional on-chain commitments for payout batch roots and/or snapshot manifests
 - optional on-chain settlement modes
 - optional enforcement mechanisms (future; only if/when third-party operators are enabled)
 

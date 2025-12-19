@@ -1,38 +1,44 @@
 ---
 slug: packs
-title: Packs (archival packs)
+title: Corpora, streams, and snapshots
 ---
 
-A **pack** is a sealed, integrity-checked bundle of knowledge that the network can store, serve, and charge for.
+This page defines three terms we use consistently across the docs:
 
-If the WAL (JetStream) is the **hot, replayable stream of facts**, packs are the **cold, durable, queryable artifacts**.
+- **Corpus:** a named, queryable knowledge surface (living, continuously updated).
+- **Stream:** a scheduled ingest pipeline that keeps a corpus fresh.
+- **Snapshot:** a sealed, integrity-checked slice of a corpus (cold path) that can be stored, served, and charged for.
 
-## Why packs exist
+> Legacy note: older drafts called snapshots “packs”. We avoid “pack” now because it sounds final/sealed by default.
 
-Most RAG systems treat “history” as an unbounded hidden cost. Packs turn history into a **product**:
+If the WAL (JetStream) is the **hot, replayable stream of facts**, snapshots are the **cold, durable, queryable artifacts**.
+
+## Why snapshots exist
+
+Most RAG systems treat “history” as an unbounded hidden cost. Snapshots turn history into a **product**:
 
 - bounded hot window (fast/cheap)
 - explicit cold history (paid storage + paid retrieval)
 
 That’s what makes the operator economy sustainable.
 
-## What’s inside a pack
+## What’s inside a snapshot
 
-At minimum, a useful pack contains:
+At minimum, a useful snapshot contains:
 
 - **normalized documents** (content + metadata + provenance)
 - **chunk map** (chunk IDs and offsets for citation)
 - **embeddings** (or a deterministic recipe pinned by model/version)
 - **index hints** (topic tags, time range, source identifiers)
-- **integrity manifest** (hashes/Merkle root over the pack contents)
+- **integrity manifest** (hashes/Merkle root over the snapshot contents)
 
-A pack is typically keyed by something like:
+A snapshot is typically keyed by something like:
 
 - `(topic, source, time_range, schema_version, embedding_recipe_version)`
 
-## What makes packs different from “a file on IPFS”
+## What makes snapshots different from “a file on IPFS”
 
-A pack is designed to be **served as a low-latency service** with explicit expectations:
+A snapshot is designed to be **served as a low-latency service** with explicit expectations:
 
 - operators advertise prices and SLO tiers
 - routing picks providers by policy (price/SLO/geo), not opportunistic peer discovery
@@ -40,103 +46,105 @@ A pack is designed to be **served as a low-latency service** with explicit expec
 
 This is how the cold path stays usable for interactive AI workflows.
 
-## How packs are created
+## How snapshots are created
 
 Conceptually:
 
 1. Ingest facts into the WAL.
 2. Projection operators normalize/chunk/embed and maintain hot indices.
-3. Periodically seal a time slice (or curated slice) into a pack with a manifest.
-4. Storage operators retain packs and serve them on demand.
+3. Periodically seal a time slice (or curated slice) into a snapshot with a manifest.
+4. Storage operators retain snapshots and serve them on demand.
 5. Retrieval events are metered and paid.
 
-## What packs enable (high-value use cases)
+## What snapshots enable (high-value use cases)
 
 - **Paid historical retrieval:** “pull me the 2023–2024 history for topic X”.
 - **Retention tiers:** 7d / 30d / 90d / 1y tiers priced by storage + replication + SLO.
-- **Time-travel RAG:** spin up “RAG as-of date $D$” by rehydrating projections from packs.
-- **Dataset packs:** dataset packs referenced by manifest for reproducible offline workflows.
+- **Time-travel RAG:** spin up “RAG as-of date $D$” by rehydrating projections from snapshots.
+- **Dataset snapshots:** dataset snapshots referenced by manifest for reproducible offline workflows.
 
-## Packs by example (novice-friendly)
+## Corpora + streams + snapshots by example
 
-Think of a pack like a **“semantic, searchable folder”** that covers a topic and a time window.
+Think of a **corpus** as a living “semantic, searchable library” for a topic.
+
+Think of a **snapshot** like a **sealed, integrity-checked folder** that covers a topic and a time window.
 
 As an operator, your value is:
 
 - you **ingest + normalize** a stream or dataset,
-- you **seal it** into a pack with an integrity manifest,
+- you **seal it** into a snapshot with an integrity manifest,
 - and you **serve it reliably** (low latency, high uptime) so people can semantic-search it.
 
-Here are concrete pack ideas people actually want to query:
+Here are concrete corpus/snapshot ideas people actually want to query:
 
-### 1) “Hashtag / topic stream” packs (social + communities)
+### 1) “Hashtag / topic stream” snapshots (social + communities)
 
 Example: “AI safety” or “Solana dev” mentions over the last week/month.
 
 - Source: any social stream you are legally allowed to ingest (APIs/exports; obey ToS/licensing).
-- Pack contents: posts, authors (where permitted), timestamps, links, extracted entities, embeddings.
+- Snapshot contents: posts, authors (where permitted), timestamps, links, extracted entities, embeddings.
 - Buyers want: “what changed today?”, “top emerging subtopics”, “who is driving the conversation?”.
 
-### 2) News feed packs (fresh + searchable)
+### 2) News feed snapshots (fresh + searchable)
 
 Example: “Energy policy news (US/EU), last 30 days”.
 
 - Source: RSS feeds, press releases, public newsroom pages (respect terms).
-- Pack contents: normalized articles, source metadata, topic tags, embeddings.
+- Snapshot contents: normalized articles, source metadata, topic tags, embeddings.
 - Buyers want: “summarize this week”, “find all mentions of company X + regulation Y”.
 
-### 3) Research packs (papers + preprints)
+### 3) Research corpora (papers + preprints)
 
 Example: “All arXiv papers in cs.LG this week” or “papers mentioning ‘diffusion policy’ in 2024”.
 
 - Source: open indexes where allowed (metadata + PDFs where licensed).
-- Pack contents: paper metadata, abstract, sections/chunks, citations graph hints, embeddings.
+- Corpus contents: paper metadata, abstract, sections/chunks, citations graph hints, embeddings.
 - Buyers want: “what’s new?”, “find prior art”, “map a research area”.
 
-### 4) Market + macro packs (public, queryable)
+### 4) Market + macro corpora (public, queryable)
 
 Example: “FRED macro series last 10 years”, “SEC EDGAR filings for sector X in 2024”.
 
 - Source: open datasets (FRED, EDGAR, World Bank, etc.).
-- Pack contents: normalized time series + filings text chunks + embeddings.
+- Corpus contents: normalized time series + filings text chunks + embeddings.
 - Buyers want: “backtest prompts”, “explain macro regimes”, “pull all risk factors mentioning X”.
 
-### 5) “Open knowledge base” packs (standards + docs)
+### 5) “Open knowledge base” corpora (standards + docs)
 
 Example: “RFCs for HTTP/QUIC”, “Kubernetes docs snapshots per release”.
 
 - Source: open docs / permissively licensed content.
-- Pack contents: normalized docs, version tags, changelog deltas, embeddings.
+- Corpus contents: normalized docs, version tags, changelog deltas, embeddings.
 - Buyers want: “search across versions”, “diff what changed between releases”.
 
-### 6) Local / municipal open-data packs
+### 6) Local / municipal open-data corpora
 
 Example: “NYC 311 complaints (last 90 days)”, “crime + zoning + permits by neighborhood”.
 
 - Source: city open-data portals.
-- Pack contents: normalized records, geo tags, time windows, embeddings for free-text fields.
+- Corpus contents: normalized records, geo tags, time windows, embeddings for free-text fields.
 - Buyers want: “spot trends”, “answer civic questions with citations”.
 
-### 7) Security intelligence packs
+### 7) Security intelligence corpora
 
 Example: “CVE + advisories last 30 days” or “vendor advisories for product family X”.
 
 - Source: public advisories, CVE feeds.
-- Pack contents: normalized advisories, affected versions, links to patches, embeddings.
+- Corpus contents: normalized advisories, affected versions, links to patches, embeddings.
 - Buyers want: “what affects me?”, “generate remediation plans with grounding”.
 
-### 8) “Curated media transcript” packs
+### 8) “Curated media transcript” corpora
 
 Example: “Top 200 podcasts in fintech (last 60 days)” or “specific YouTube channels by topic”.
 
 - Source: transcripts where permitted.
-- Pack contents: transcript chunks with timestamps, speaker tags (if available), embeddings.
-- Buyers want: “find the 20 seconds where they discussed X”, “build clip packs”.
+- Corpus contents: transcript chunks with timestamps, speaker tags (if available), embeddings.
+- Buyers want: “find the 20 seconds where they discussed X”, “build clip bundles”.
 
-## A simple mental model for selling packs
+## A simple mental model for selling corpora + snapshots
 
 - You are selling **coverage** (topic/time range), **quality** (cleaning/chunking/recipe pins), and **serving reliability** (latency/SLO).
-- Packs become more valuable when you add: better metadata, better chunking, pinned embedding recipes, and higher replication/uptime tiers.
+- Corpora/snapshots become more valuable when you add: better metadata, better chunking, pinned embedding recipes, and higher replication/uptime tiers.
 
 ## Where to read more
 

@@ -3,17 +3,17 @@ slug: operator-kit
 title: Operator kit / bootstrap
 ---
 
-A practical checklist for operators: get WAL + Helix healthy, then iterate on services (ingest, projection, packs, retrieval, tools).
+A practical checklist for operators: get WAL + Helix healthy, then iterate on services (ingest, projection, corpora/snapshots, retrieval, tools).
 
 ## 0) Pick your operator role (service) {#0-pick-your-operator-lane}
 
 - **Ingest operator:** bring new sources into the WAL.
 - **Projection/index operator:** consume WAL events and update Helix.
-- **Pack builder / storage operator:** seal archival packs and serve retrieval.
+- **Snapshot builder / storage operator:** seal archival snapshots and serve retrieval.
 - **Tool/MCP operator:** provide deterministic transforms/rendering steps.
 - **Compute operator (optional):** embeddings and/or inference.
 
-If you’re starting from zero, the lowest-risk path is: *projection/index + pack serving*.
+If you’re starting from zero, the lowest-risk path is: *projection/index + snapshot serving*.
 
 ## 1) Make the WAL boring
 
@@ -36,18 +36,18 @@ Observability baseline (operators should treat this as required):
 Query + serving observability:
 
 - retrieval latency p50/p95/p99 (hot vs cold)
-- error rates by service class (packs/tools/embeddings)
+- error rates by service class (snapshots/tools/embeddings)
 - SLO compliance by operator capability tier
 
 ## 3) Add paid history (archives)
 
-- Decide pack boundaries (topic + time range + recipe pins).
-- Seal packs with an integrity manifest.
-- Serve packs on demand and emit usage events.
+- Decide snapshot boundaries (topic + time range + recipe pins).
+- Seal snapshots with an integrity manifest.
+- Serve snapshots on demand and emit usage events.
 
 Reference:
 
-- [Packs (archival packs)](/docs/packs)
+- [Corpora, streams, and snapshots](/docs/packs)
 
 If you want a clean operator business, wire dashboards to usage events so you can answer:
 
@@ -73,7 +73,7 @@ Practical policy design:
 
 - separate subject families: ingest facts vs mission/work requests vs metering/settlement
 - use subject patterns to enforce boundaries: tenant/topic scoped subjects
-- default to read-only when possible (e.g. pack-serving operators subscribe to request subjects and publish responses + usage events)
+- default to read-only when possible (e.g. snapshot-serving operators subscribe to request subjects and publish responses + usage events)
 
 Key separation:
 
@@ -82,7 +82,7 @@ Key separation:
 
 ## Optional: retention tiers (30d / 90d / 1y) {#optional-lane-retention-tiers-30d--90d--1y}
 
-Beyond the baseline hot window, operators can offer “deeper memory” tiers by retaining and serving archival packs for longer windows (priced by storage + replication + latency tier).
+Beyond the baseline hot window, operators can offer “deeper memory” tiers by retaining and serving archival snapshots for longer windows (priced by storage + replication + latency tier).
 
 This is a simple ladder:
 
@@ -98,6 +98,6 @@ Run tools agents can call reliably (retrieval, transforms, render steps) so end-
 
 ## Optional: semantic media archives {#optional-lane-semantic-media-archives}
 
-Ingest/transcribe/embed curated YouTube/podcasts and serve them as a topic pack for semantic search.
+Ingest/transcribe/embed curated YouTube/podcasts and serve them as a topic corpus for semantic search.
 
 

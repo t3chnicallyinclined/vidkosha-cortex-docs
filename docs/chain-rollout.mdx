@@ -29,7 +29,7 @@ The chain layer is for *commitments* and *settlement*, not for serving data.
 Typical candidates for anchoring:
 
 - **Payout batch commitments:** a Merkle root or digest of usage-event aggregation and payout allocations.
-- **Pack manifest commitments:** hashes of archival pack manifests (integrity + provenance checkpoints).
+- **Snapshot manifest commitments:** hashes of archival snapshot manifests (integrity + provenance checkpoints).
 - **Operator identity registry (optional):** a minimal registry for operator keys and metadata, if useful.
 
 None of the above requires on-chain execution for the hot path.
@@ -46,7 +46,7 @@ This phase is enough to launch paid APIs and operator businesses.
 
 ### Phase 1: Checkpointing (hash-only)
 
-- Periodically anchor **payout batch roots** (and/or pack manifest roots) on-chain.
+- Periodically anchor **payout batch roots** (and/or snapshot manifest roots) on-chain.
 - Keep the payout execution off-chain.
 
 Benefit: external parties can verify that batches weren’t rewritten after publication.

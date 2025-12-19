@@ -4,7 +4,7 @@ This folder contains the Docusaurus site. It is designed to be split into its ow
 
 ## Local dev
 
-Node.js is required.
+Node.js is required. Use Node.js **18+** (Docusaurus v3 requirement).
 
 ```bash
 cd docs-site

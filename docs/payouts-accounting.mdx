@@ -54,7 +54,7 @@ Practical invariants:
 
 ## What gets metered
 
-- Retrieval and storage (pack serving)
+- Retrieval and storage (snapshot serving)
 - Embeddings (vector generation)
 - Inference (optional tiers)
 - **Tool/MCP execution** (workflow steps like transforms, render, stitching)
@@ -63,7 +63,7 @@ In practice, these show up to users as **paid API endpoints** (“run this workf
 
 Reference:
 
-- [Packs (archival packs)](/docs/packs)
+- [Corpora, streams, and snapshots](/docs/packs)
 
 Metering needs to be boring and machine-verifiable:
 
@@ -83,7 +83,7 @@ If/when third-party operators are enabled, additional surfaces can be added (cat
 Use JetStream retention (e.g. 7d) as the baseline freshness window:
 
 - **Hot path** (≤ $T$): cheap and fast, bounded storage cost.
-- **Cold path** (> $T$): storage operators compete to retain archival packs and charge for retrieval.
+- **Cold path** (> $T$): storage operators compete to retain archival snapshots and charge for retrieval.
 
 This turns “infinite retention” from a hidden network cost into an explicit market.
 
