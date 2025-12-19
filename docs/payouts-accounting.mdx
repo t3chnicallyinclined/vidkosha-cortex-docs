@@ -36,6 +36,22 @@ Economics and token model are centralized in: [VKC tokenomics (v1)](/docs/vkc-to
 4. Treasury settles the batch in **USDC** (v1 default).
 5. Optional: publish a hash-only checkpoint of the batch root (later).
 
+## Anti-abuse (v1): prevent “self-minting usage”
+
+The core rule: **operators do not mint billable usage**.
+In v1, `usage_event` is produced by the **payer-side control plane** (gateway/orchestrator) and only for requests that have a valid payment authorization.
+
+Practical invariants:
+
+- **No pay without payer auth:** every `usage_event` references a `payment_intent_id`/invoice/subscription that the billing ledger recognizes.
+- **Signed mission envelope:** missions include a signed envelope (request + limits + price quote). Only envelopes signed by the orchestrator are eligible for payout.
+- **Meter at the boundary:** billable units (tokens/seconds/bytes) are measured at the gateway/orchestrator (or a trusted proxy), not from operator self-reports.
+- **Reconciliation is mandatory:** epoch aggregation must reconcile to collected revenue (fiat/stables) before inclusion in `payout_batch`.
+- **Revenue-capped pool:** the epoch payout pool is derived from collected revenue (and reserve policy). Usage determines splits, not the total pool size.
+- **Idempotency + dedupe:** correlation IDs prevent replay/double-billing.
+- **Rate limits/allowlists:** enforce per-customer and per-API-key budgets; internal testing uses explicit capped budgets.
+- **Holdbacks:** retain a small payout holdback for refunds/chargebacks; release after the dispute window.
+
 ## What gets metered
 
 - Retrieval and storage (pack serving)
