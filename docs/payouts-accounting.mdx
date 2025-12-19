@@ -1,5 +1,5 @@
 ---
-slug: operator-marketplace
+slug: payouts-accounting
 title: Payouts + accounting (v1)
 ---
 
@@ -10,7 +10,7 @@ If the network can’t measure work, it can’t pay for work — and you don’t
 ## v1 simplification
 
 In v1, Vidkosha Cortex runs **first-party operators only**.
-We intentionally defer open-marketplace mechanics (third-party discovery, bidding, escrow/disputes) until the network has real volume and adversarial pressure.
+We intentionally defer third-party operator participation and adversarial enforcement (bidding, escrow/disputes, slashing regimes) until the network has real volume and pressure.
 
 Stable-first posture:
 - Customers pay in fiat or stablecoins (unit-of-account is USD/USDC).
@@ -20,7 +20,7 @@ Canonical tokenomics: [VKC tokenomics (v1)](/docs/vkc-tokenomics).
 
 ## Accounting primitives
 
-Even without an open marketplace, the network needs a boring, auditable accounting spine:
+The network needs a boring, auditable accounting spine:
 
 - `usage_event`: append-only record of billable work (who did what, units, SLO tier, price quote vs actual).
 - `payout_batch`: epoch aggregation of usage events into “who gets paid how much”.
@@ -58,7 +58,7 @@ Metering needs to be boring and machine-verifiable:
 - SLO tier (latency/availability)
 - price quote vs actual usage
 
-## Deferred: open marketplace mechanics
+## Deferred: third-party operators
 
 If/when third-party operators are enabled, additional surfaces can be added (catalog discovery, bidding, escrow/disputes, and stronger enforcement). v1 keeps these out of scope to reduce complexity.
 

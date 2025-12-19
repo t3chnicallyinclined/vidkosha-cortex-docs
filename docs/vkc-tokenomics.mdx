@@ -7,7 +7,7 @@ This is the first rendition of the simplified Vidkosha Cortex DAO economics and 
 It is intentionally designed to be **operator-friendly**, **investor-legible**, and **low-complexity**.
 
 **Key simplifications (v1):**
-- **First-party operators only** (no open marketplace, no bidding, no third-party discovery).
+- **First-party operators only** (no third-party operators in v1).
 - **Stable-first accounting and payouts**: customers pay in fiat or stablecoins; operators are paid in **USDC**.
 - `VKC` is **fixed-supply** and used for **governance + staking**, not as the default payment currency.
 - **POL is optional** and only turns on once there is real revenue + a safe primary liquidity venue.
@@ -22,7 +22,7 @@ It is intentionally designed to be **operator-friendly**, **investor-legible**, 
 - Enable **Protocol-Owned Liquidity (POL)** later without turning tokenomics into the product.
 
 ## Non-goals (v1)
-- No per-request escrow, disputes, evaluator courts, or open specialist marketplace.
+- No per-request escrow, disputes, or evaluator courts.
 - No inflationary emissions schedule.
 - No requirement for end users to hold `VKC`.
 
@@ -44,6 +44,17 @@ It is intentionally designed to be **operator-friendly**, **investor-legible**, 
 Why this is the default:
 - Operators have real-world costs (GPUs/cloud) denominated in fiat/stables.
 - Stable payouts reduce forced token selling and keep the network reliable.
+
+## Payouts + accounting (v1)
+
+This is the “boring spine” that makes the economics enforceable:
+
+- **What gets emitted:** `usage_event` records for billable work.
+- **How it settles:** weekly `payout_batch` aggregation → USDC transfers.
+- **What’s auditable:** append-only logs + reproducible aggregation; optional hash-only batch checkpoints later.
+- **What’s explicitly deferred:** third-party operators, bidding, escrow/dispute games, slashing regimes.
+
+Details live in: [Payouts + accounting (v1)](/docs/payouts-accounting).
 
 ## `VKC` design (fixed-supply governance + staking)
 ### Purpose
@@ -102,7 +113,7 @@ Once revenue is consistent and operations are mature, governance may enable one 
 In v1, default is **reserves + payouts + (optional) POL**, not buybacks.
 
 ## Roadmap (economics)
-- **v1:** first-party operators + USDC payouts + published treasury policy snapshots; no marketplace; `VKC` spec finalized.
+- **v1:** first-party operators + USDC payouts + published treasury policy snapshots; `VKC` spec finalized.
 - **v1.5:** hash-only checkpointing of `payout_batch` roots and policy snapshots (optional chain lane).
 - **v2:** introduce `VKC` staking gates for operator privileges; delegation optional; keep payouts stable-first.
 - **v3:** open operator set only when adversarial pressure justifies it; then consider slashing/dispute complexity.

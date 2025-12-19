@@ -9,7 +9,7 @@ const sidebars = {
     'dao-financial-architecture',
     'vkc-tokenomics',
     'operator-network-v1',
-    'operator-marketplace',
+    'payouts-accounting',
     'operator-kit',
     'roadmap',
   ],

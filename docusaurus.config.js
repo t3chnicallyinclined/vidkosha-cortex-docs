@@ -55,6 +55,7 @@ const config = {
           { from: '/docs/nats-operator-auth', to: '/docs/operator-kit#4-secure-the-fabric-nats-nkeys' },
           { from: '/docs/project-context', to: '/docs/vidkosha-cortex' },
           { from: '/docs/training-lane', to: '/docs/roadmap' },
+          { from: '/docs/operator-marketplace', to: '/docs/payouts-accounting' },
         ],
       },
     ],
